@@ -22,6 +22,7 @@ ktor-server-config-yaml = { module = "io.ktor:ktor-server-config-yaml", version.
 liquibase = { module = "org.liquibase:liquibase-core", version.ref = "liquibase" }
 exposed-core = { module = "org.jetbrains.exposed:exposed-core", version.ref = "exposed" }
 exposed-jdbc = { module = "org.jetbrains.exposed:exposed-jdbc", version.ref = "exposed" }
+exposed-java-time = { module = "org.jetbrains.exposed:exposed-java-time", version.ref = "exposed" }
 hikari = { module = "com.zaxxer:HikariCP", version.ref = "hikari" }
 postgres = { module = "org.postgresql:postgresql", version.ref = "postgres" }
 
@@ -38,6 +39,7 @@ ktor = [
     "liquibase",
     "exposed-core",
     "exposed-jdbc",
+    "exposed-java-time",
     "hikari",
     "postgres"
 ]
@@ -46,4 +48,3 @@ ktor = [
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 ktor = { id = "io.ktor.plugin", version.ref = "ktor" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
-
