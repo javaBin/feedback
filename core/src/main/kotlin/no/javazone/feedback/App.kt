@@ -8,12 +8,16 @@ import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.plugins.calllogging.*
 import io.ktor.server.plugins.contentnegotiation.*
+import io.ktor.server.request.receive
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import liquibase.Liquibase
 import liquibase.database.DatabaseFactory
 import liquibase.database.jvm.JdbcConnection
 import liquibase.resource.ClassLoaderResourceAccessor
+import no.javazone.feedback.adapter.FeedbackAdapterDefault
+import no.javazone.feedback.database.repository.FeedbackRepositoryDb
+import no.javazone.feedback.request.channel.FeedbackChannelCreationDTO
 import org.jetbrains.exposed.sql.Database
 import org.slf4j.LoggerFactory
 import java.util.concurrent.TimeUnit
@@ -47,9 +51,16 @@ fun Application.module() {
 
     routing {
         route("/v1/feedback") {
+            val feedbackAdapter = FeedbackAdapterDefault(
+                repository = FeedbackRepositoryDb,
+                externalIdGenerator = ExternalIdGeneratorDefault
+            )
             route("channel") {
                 post {
-                    call.respond("Not implemented yet")
+                    val input = call.receive<FeedbackChannelCreationDTO>()
+
+                    val channel = feedbackAdapter.createFeedbackChannel(input)
+                    call.respond(channel.toDTO())
                 }
             }
             post {

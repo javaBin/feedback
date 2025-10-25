@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CopilotDiffPersistence">
+    <option name="pendingDiffs">
+      <map>
+        <entry key="$PROJECT_DIR$/core/src/main/kotlin/no/javazone/feedback/database/Feedbacks.kt">
+          <value>
+            <PendingDiffInfo>
+              <option name="filePath" value="$PROJECT_DIR$/core/src/main/kotlin/no/javazone/feedback/database/Feedbacks.kt" />
+              <option name="updatedContent" value="package no.javazone.feedback.database&#10;&#10;import org.jetbrains.exposed.dao.id.LongIdTable&#10;import org.jetbrains.exposed.sql.javatime.timestamp&#10;&#10;object Feedbacks : LongIdTable(&quot;feedback&quot;) {&#10;    val channelId = long(&quot;channel_id&quot;)&#10;    val detailedComment = text(&quot;detailed_comment&quot;).nullable()&#10;    val createdAt = timestamp(&quot;created_at&quot;)&#10;}&#10;" />
+            </PendingDiffInfo>
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/core/src/main/kotlin/no/javazone/feedback/database/RatingTypes.kt">
+          <value>
+            <PendingDiffInfo>
+              <option name="filePath" value="$PROJECT_DIR$/core/src/main/kotlin/no/javazone/feedback/database/RatingTypes.kt" />
+              <option name="updatedContent" value="package no.javazone.feedback.database&#10;&#10;import org.jetbrains.exposed.dao.id.LongIdTable&#10;import org.jetbrains.exposed.sql.javatime.timestamp&#10;&#10;object RatingTypes : LongIdTable(&quot;rating_type&quot;) {&#10;    val channelId = long(&quot;channel_id&quot;)&#10;    val ratingName = varchar(&quot;rating_name&quot;, 50)&#10;    val createdAt = timestamp(&quot;created_at&quot;)&#10;}&#10;" />
+            </PendingDiffInfo>
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+</project>
