@@ -5,6 +5,8 @@ services:
       POSTGRES_USER: feedback
       POSTGRES_PASSWORD: feedback
       POSTGRES_DB: feedback
+    ports:
+      - "5432:5432"
     volumes:
       - db_data:/var/lib/postgresql/18/docker
 

@@ -11,7 +11,7 @@ class FakeFeedbackAdapter : FeedbackAdapter {
             id = idGenerator.incrementAndGet(),
             title = input.title,
             speakers = input.speakers,
-            channelPrefix = input.channelPrefix
+            channelPrefix = "JZ2025" // JZ2025-10000
         )
         channels.add(channel)
         return channel
