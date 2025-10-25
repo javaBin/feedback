@@ -1,5 +1,5 @@
 package no.javazone.feedback
 
 interface FeedbackAdapter {
-    fun createFeedbackChannel(input: FeedbackChannelCreationDTO): FeedbackChannelDTO
+    fun createFeedbackChannel(input: FeedbackChannelCreationDTO): FeedbackChannel
 }

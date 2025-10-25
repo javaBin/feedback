@@ -37,6 +37,16 @@ fun Application.module() {
     install(CallLogging)
 
     routing {
+        route("/v1/feedback") {
+            route("channel") {
+                post {
+                    call.respond("Not implemented yet")
+                }
+            }
+            post {
+                call.respond("Not implemented yet")
+            }
+        }
         get {
             call.respond("Hello, World!")
         }

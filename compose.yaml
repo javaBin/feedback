@@ -1,0 +1,12 @@
+services:
+  database:
+    image: postgres:18
+    environment:
+      POSTGRES_USER: feedback
+      POSTGRES_PASSWORD: feedback
+      POSTGRES_DB: feedback
+    volumes:
+      - db_data:/var/lib/postgresql/18/docker
+
+volumes:
+  db_data:
