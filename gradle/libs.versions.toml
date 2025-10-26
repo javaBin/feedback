@@ -7,6 +7,7 @@ liquibase = "5.0.1"
 exposed = "0.61.0"
 hikari = "7.0.2"
 postgres = "42.7.8"
+testcontainers = "1.20.0"
 
 
 [libraries]
@@ -17,6 +18,9 @@ ktor-server-core = { module = "io.ktor:ktor-server-core", version.ref = "ktor" }
 ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
 ktor-server-auth = { module = "io.ktor:ktor-server-auth", version.ref = "ktor" }
 ktor-server-netty = { module = "io.ktor:ktor-server-netty", version.ref = "ktor" }
+ktor-server-test-host = { module = "io.ktor:ktor-server-test-host", version.ref = "ktor" }
+ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
+ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 ktor-server-config-yaml = { module = "io.ktor:ktor-server-config-yaml", version.ref = "ktor" }
 liquibase = { module = "org.liquibase:liquibase-core", version.ref = "liquibase" }
@@ -25,6 +29,8 @@ exposed-jdbc = { module = "org.jetbrains.exposed:exposed-jdbc", version.ref = "e
 exposed-java-time = { module = "org.jetbrains.exposed:exposed-java-time", version.ref = "exposed" }
 hikari = { module = "com.zaxxer:HikariCP", version.ref = "hikari" }
 postgres = { module = "org.postgresql:postgresql", version.ref = "postgres" }
+testcontainers = { module = "org.testcontainers:testcontainers", version.ref = "testcontainers" }
+testcontainers-postgresql = { module = "org.testcontainers:postgresql", version.ref = "testcontainers" }
 
 [bundles]
 ktor = [
@@ -35,6 +41,8 @@ ktor = [
     "ktor-server-auth",
     "ktor-server-netty",
     "ktor-server-config-yaml",
+    "ktor-client-core",
+    "ktor-client-content-negotiation",
     "logback-classic",
 ]
 database = [
@@ -44,6 +52,10 @@ database = [
     "hikari",
     "postgres",
     "liquibase"
+]
+testcontainers = [
+    "testcontainers",
+    "testcontainers-postgresql"
 ]
 
 [plugins]

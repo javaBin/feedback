@@ -1,20 +1,13 @@
 package no.javazone.feedback
 
-import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.plugins.calllogging.*
 import io.ktor.server.plugins.contentnegotiation.*
-import io.ktor.server.request.*
-import io.ktor.server.response.*
-import io.ktor.server.routing.*
-import no.javazone.feedback.database.repository.FeedbackRepositoryDb
+import no.javazone.feedback.database.FeedbackDatabaseConfig
 import no.javazone.feedback.database.setupDatabase
-import no.javazone.feedback.domain.adapters.FeedbackAdapter
-import no.javazone.feedback.domain.generators.ExternalIdGeneratorDefault
-import no.javazone.feedback.request.channel.*
 import org.slf4j.LoggerFactory
 import java.util.concurrent.TimeUnit
 
@@ -37,67 +30,21 @@ fun main() {
     server.start(wait = true)
 }
 
-fun Application.module() {
-    setupDatabase()
+fun Application.module(
+    databaseConfig: FeedbackDatabaseConfig = FeedbackDatabaseConfig(
+        host = "localhost",
+        port = 5432,
+        databaseName = "feedback",
+        username = "feedback",
+        password = "feedback",
+    )
+) {
+    setupDatabase(databaseConfig)
 
     install(ContentNegotiation) {
         json()
     }
     install(CallLogging)
 
-    routing {
-        route("/v1/feedback") {
-            val feedbackAdapter = FeedbackAdapter(
-                repository = FeedbackRepositoryDb,
-                externalIdGenerator = ExternalIdGeneratorDefault
-            )
-            route("channel") {
-                post {
-                    val input = call.receive<FeedbackChannelCreationDTO>()
-
-                    val channel = feedbackAdapter.createFeedbackChannel(
-                        input = input.toDomain()
-                    )
-
-                    call.respond(channel.toDTO())
-                }
-
-                post("{channelId}/submit-feedback") {
-                    val channelId = call.parameters["channelId"] ?: return@post call.respond(
-                        HttpStatusCode.NotFound,
-                        "Missing externalId"
-                    )
-
-                    val feedbackInput = call.receive<FeedbackCreationDTO>()
-
-                    val feedbackDto = feedbackAdapter.submitFeedback(
-                        channelId = channelId,
-                        feedback = feedbackInput.toDomain()
-                    ).let { feedbackWithComment ->
-                        val ratingCategories = feedbackWithComment.channel.ratingCategories.associateBy { it.id }
-
-                        FeedbackDTO(
-                            id = feedbackWithComment.feedback.id,
-                            channel = feedbackWithComment.channel.toDTO(),
-                            detailedComment = feedbackWithComment.feedback.comment,
-                            ratings = feedbackWithComment.feedback.ratings.map { rating ->
-                                FeedbackRatingDTO(
-                                    id = rating.id,
-                                    category = with(ratingCategories[rating.typeId]) {
-                                        FeedbackChannelRatingCategoryDTO(
-                                            id = this?.id ?: 0,
-                                            title = this?.name ?: "Unknown"
-                                        )
-                                    },
-                                    score = rating.value
-                                )
-                            }
-                        )
-                    }
-
-                    call.respond(feedbackDto)
-                }
-            }
-        }
-    }
+    setupRouting()
 }

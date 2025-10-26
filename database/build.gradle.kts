@@ -16,5 +16,6 @@ dependencies {
     implementation(project(":domain"))
 
     implementation(libs.bundles.database)
+    implementation(libs.bundles.testcontainers)
 }
 

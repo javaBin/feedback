@@ -7,7 +7,7 @@ import no.javazone.feedback.domain.FeedbackChannel
 data class FeedbackChannelDTO(
     val title: String,
     val speakers: List<String>,
-    val channelId: String?,
+    val channelId: String,
     val ratingCategories: List<FeedbackChannelRatingCategoryDTO>
 )
 

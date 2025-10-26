@@ -7,13 +7,16 @@ import liquibase.database.DatabaseFactory
 import liquibase.database.jvm.JdbcConnection
 import liquibase.resource.ClassLoaderResourceAccessor
 import org.jetbrains.exposed.sql.Database
+import kotlin.String
 import kotlin.use
 
-fun setupDatabase() {
+fun setupDatabase(
+    databaseConfig: FeedbackDatabaseConfig
+) {
     val connectionPoolConfig = HikariConfig().apply {
-        jdbcUrl = "jdbc:postgresql://localhost:5432/feedback"
-        username = "feedback"
-        password = "feedback"
+        jdbcUrl = "jdbc:postgresql://${databaseConfig.host}:${databaseConfig.port}/${databaseConfig.databaseName}"
+        username = databaseConfig.username
+        password = databaseConfig.password
         driverClassName = "org.postgresql.Driver"
         maximumPoolSize = 10
     }
@@ -32,3 +35,11 @@ fun setupDatabase() {
 
     }
 }
+
+data class FeedbackDatabaseConfig(
+    val host: String,
+    val port: Int,
+    val databaseName: String,
+    val username: String,
+    val password: String,
+)

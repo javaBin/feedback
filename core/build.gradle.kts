@@ -19,6 +19,7 @@ dependencies {
     implementation(project(":database"))
     implementation(libs.bundles.ktor)
     // Use JUnit Jupiter for testing.
+    testImplementation(libs.ktor.server.test.host)
     testImplementation(libs.junit.jupiter)
 
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")

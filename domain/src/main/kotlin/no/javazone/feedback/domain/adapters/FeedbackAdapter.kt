@@ -4,6 +4,7 @@ import no.javazone.feedback.domain.Feedback
 import no.javazone.feedback.domain.FeedbackChannel
 import no.javazone.feedback.domain.FeedbackChannelCreationInput
 import no.javazone.feedback.domain.FeedbackWithChannel
+import no.javazone.feedback.domain.errors.ChannelNotFoundError
 import no.javazone.feedback.domain.generators.ExternalIdGenerator
 import no.javazone.feedback.domain.persistence.FeedbackRepository
 
@@ -23,7 +24,7 @@ class FeedbackAdapter(
 
     fun submitFeedback(channelId: String, feedback: Feedback): FeedbackWithChannel {
         val feedbackChannel = repository.findByChannelId(channelId)
-            ?: throw IllegalStateException("Channel with id $channelId does not exist")
+            ?: throw ChannelNotFoundError("Channel with id $channelId does not exist")
         val createdFeedback = repository.submitFeedback(feedback, feedbackChannel)
         return FeedbackWithChannel(
             channel = feedbackChannel,
