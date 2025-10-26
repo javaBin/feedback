@@ -5,17 +5,22 @@ import no.javazone.feedback.domain.FeedbackChannel
 
 @Serializable
 data class FeedbackChannelDTO(
-    val id: Long,
     val title: String,
     val speakers: List<String>,
-    val externalId: String?
+    val channelId: String?,
+    val ratingCategories: List<FeedbackChannelRatingCategoryDTO>
 )
 
 fun FeedbackChannel.toDTO(): FeedbackChannelDTO {
     return FeedbackChannelDTO(
-        id = id,
         title = title,
         speakers = speakers,
-        externalId = externalId
+        channelId = externalId,
+        ratingCategories = ratings.map {
+            FeedbackChannelRatingCategoryDTO(
+                title = it.name,
+                id = it.id,
+            )
+        }
     )
 }

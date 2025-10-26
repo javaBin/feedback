@@ -1,5 +1,6 @@
 package no.javazone.feedback
 
+import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
@@ -14,6 +15,7 @@ import no.javazone.feedback.database.setupDatabase
 import no.javazone.feedback.domain.generators.ExternalIdGeneratorDefault
 import no.javazone.feedback.domain.adapters.FeedbackAdapter
 import no.javazone.feedback.request.channel.FeedbackChannelCreationDTO
+import no.javazone.feedback.request.channel.FeedbackCreationDTO
 import no.javazone.feedback.request.channel.toDTO
 import org.slf4j.LoggerFactory
 import java.util.concurrent.TimeUnit
@@ -58,11 +60,18 @@ fun Application.module() {
                     val channel = feedbackAdapter.createFeedbackChannel(
                         input = input.toDomain()
                     )
+
                     call.respond(channel.toDTO())
                 }
-            }
-            post {
-                call.respond("Not implemented yet")
+
+                post("{externalId}/submit-feedback") {
+                    val externalChannelId = call.parameters["externalId"] ?: return@post call.respond(
+                        HttpStatusCode.NotFound,
+                        "Missing externalId"
+                    )
+
+                    val feedbackInput = call.receive<FeedbackCreationDTO>()
+                }
             }
         }
         get {

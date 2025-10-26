@@ -7,13 +7,15 @@ import no.javazone.feedback.domain.FeedbackChannelCreationInput
 data class FeedbackChannelCreationDTO(
     val title: String,
     val speakers: List<String>,
-    val channelPrefix: String?
+    val channelPrefix: String?,
+    val ratingCategories: List<FeedbackChannelRatingCategoryDTO>
 ) {
     fun toDomain(): FeedbackChannelCreationInput {
         return FeedbackChannelCreationInput(
             title = title,
             speakers = speakers,
-            channelTag = channelPrefix ?: "feedback"
+            channelTag = channelPrefix ?: "feedback",
+            ratings = ratingCategories.map { it.toDomain() }
         )
     }
 }
