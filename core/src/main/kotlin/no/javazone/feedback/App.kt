@@ -17,7 +17,9 @@ import liquibase.database.jvm.JdbcConnection
 import liquibase.resource.ClassLoaderResourceAccessor
 import no.javazone.feedback.adapter.FeedbackAdapterDefault
 import no.javazone.feedback.database.repository.FeedbackRepositoryDb
+import no.javazone.feedback.domain.ExternalIdGeneratorDefault
 import no.javazone.feedback.request.channel.FeedbackChannelCreationDTO
+import no.javazone.feedback.request.channel.toDTO
 import org.jetbrains.exposed.sql.Database
 import org.slf4j.LoggerFactory
 import java.util.concurrent.TimeUnit

@@ -1,6 +1,6 @@
 package no.javazone.feedback.adapter
 
-import no.javazone.feedback.ExternalIdGenerator
+import no.javazone.feedback.domain.ExternalIdGenerator
 import no.javazone.feedback.database.repository.FeedbackRepository
 import no.javazone.feedback.domain.FeedbackChannel
 import no.javazone.feedback.request.channel.FeedbackChannelCreationDTO

@@ -22,6 +22,7 @@ repositories {
 }
 
 dependencies {
+    implementation(project(":domain"))
     implementation(libs.bundles.ktor)
     // Use JUnit Jupiter for testing.
     testImplementation(libs.junit.jupiter)
