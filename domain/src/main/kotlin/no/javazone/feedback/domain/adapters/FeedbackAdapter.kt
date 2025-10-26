@@ -1,7 +1,9 @@
 package no.javazone.feedback.domain.adapters
 
+import no.javazone.feedback.domain.Feedback
 import no.javazone.feedback.domain.FeedbackChannel
 import no.javazone.feedback.domain.FeedbackChannelCreationInput
+import no.javazone.feedback.domain.FeedbackWithChannel
 import no.javazone.feedback.domain.generators.ExternalIdGenerator
 import no.javazone.feedback.domain.persistence.FeedbackRepository
 
@@ -14,8 +16,18 @@ class FeedbackAdapter(
             title = input.title,
             speakers = input.speakers,
             externalId = "${input.channelTag}-${externalIdGenerator.generate()}",
-            ratings = input.ratings
+            ratingCategories = input.ratings
         )
         return repository.intializeChannel(channel)
+    }
+
+    fun submitFeedback(channelId: String, feedback: Feedback): FeedbackWithChannel {
+        val feedbackChannel = repository.findByChannelId(channelId)
+            ?: throw IllegalStateException("Channel with id $channelId does not exist")
+        val createdFeedback = repository.submitFeedback(feedback, feedbackChannel)
+        return FeedbackWithChannel(
+            channel = feedbackChannel,
+            feedback = createdFeedback
+        )
     }
 }

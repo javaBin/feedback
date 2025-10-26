@@ -15,7 +15,11 @@ import no.javazone.feedback.database.setupDatabase
 import no.javazone.feedback.domain.generators.ExternalIdGeneratorDefault
 import no.javazone.feedback.domain.adapters.FeedbackAdapter
 import no.javazone.feedback.request.channel.FeedbackChannelCreationDTO
+import no.javazone.feedback.request.channel.FeedbackChannelRatingCategoryDTO
 import no.javazone.feedback.request.channel.FeedbackCreationDTO
+import no.javazone.feedback.request.channel.FeedbackDTO
+import no.javazone.feedback.request.channel.FeedbackRatingCreationDTO
+import no.javazone.feedback.request.channel.FeedbackRatingDTO
 import no.javazone.feedback.request.channel.toDTO
 import org.slf4j.LoggerFactory
 import java.util.concurrent.TimeUnit
@@ -64,13 +68,40 @@ fun Application.module() {
                     call.respond(channel.toDTO())
                 }
 
-                post("{externalId}/submit-feedback") {
-                    val externalChannelId = call.parameters["externalId"] ?: return@post call.respond(
+                post("{channelId}/submit-feedback") {
+                    val channelId = call.parameters["channelId"] ?: return@post call.respond(
                         HttpStatusCode.NotFound,
                         "Missing externalId"
                     )
 
                     val feedbackInput = call.receive<FeedbackCreationDTO>()
+
+                    val feedbackDto = feedbackAdapter.submitFeedback(
+                        channelId = channelId,
+                        feedback = feedbackInput.toDomain()
+                    ).let { feedbackWithComment ->
+                        val ratingCategories = feedbackWithComment.channel.ratingCategories.associateBy { it.id }
+
+                        FeedbackDTO(
+                            id = feedbackWithComment.feedback.id,
+                            channel = feedbackWithComment.channel.toDTO(),
+                            detailedComment = feedbackWithComment.feedback.comment,
+                            ratings = feedbackWithComment.feedback.ratings.map { rating ->
+                                FeedbackRatingDTO(
+                                    id = rating.id,
+                                    category = with(ratingCategories[rating.typeId]) {
+                                        FeedbackChannelRatingCategoryDTO(
+                                            id = this?.id ?: 0,
+                                            title = this?.name ?: "Unknown"
+                                        )
+                                    },
+                                    score = rating.value
+                                )
+                            }
+                        )
+                    }
+
+                    call.respond(feedbackDto)
                 }
             }
         }

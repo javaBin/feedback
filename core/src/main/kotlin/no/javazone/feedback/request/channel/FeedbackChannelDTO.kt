@@ -16,7 +16,7 @@ fun FeedbackChannel.toDTO(): FeedbackChannelDTO {
         title = title,
         speakers = speakers,
         channelId = externalId,
-        ratingCategories = ratings.map {
+        ratingCategories = ratingCategories.map {
             FeedbackChannelRatingCategoryDTO(
                 title = it.name,
                 id = it.id,

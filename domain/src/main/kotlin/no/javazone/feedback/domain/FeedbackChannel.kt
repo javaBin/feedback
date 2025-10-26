@@ -5,11 +5,11 @@ class FeedbackChannel(
     val title: String,
     val speakers: List<String>,
     val externalId: String,
-    val ratings: List<FeedbackChannelRatingCategory>
+    val ratingCategories: List<FeedbackChannelRatingCategory>
 ) {
     init {
         require(speakers.all { it.isNotEmpty() }) { "All speakers must not be empty." }
         require(title.isNotEmpty()) { "Title must not be empty." }
-        require(ratings.isNotEmpty()) { "Ratings must not be empty." }
+        require(ratingCategories.isNotEmpty()) { "Ratings must not be empty." }
     }
 }
