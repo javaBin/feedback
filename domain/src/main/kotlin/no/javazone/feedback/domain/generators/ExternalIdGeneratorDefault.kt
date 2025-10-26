@@ -1,4 +1,4 @@
-package no.javazone.feedback.domain
+package no.javazone.feedback.domain.generators
 
 import java.security.SecureRandom
 

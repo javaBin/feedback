@@ -1,4 +1,4 @@
-package no.javazone.feedback.domain
+package no.javazone.feedback.domain.generators
 
 interface ExternalIdGenerator {
     fun generate(): String

@@ -9,10 +9,10 @@ import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import no.javazone.feedback.adapter.FeedbackAdapterDefault
 import no.javazone.feedback.database.repository.FeedbackRepositoryDb
 import no.javazone.feedback.database.setupDatabase
-import no.javazone.feedback.domain.ExternalIdGeneratorDefault
+import no.javazone.feedback.domain.generators.ExternalIdGeneratorDefault
+import no.javazone.feedback.domain.adapters.FeedbackAdapter
 import no.javazone.feedback.request.channel.FeedbackChannelCreationDTO
 import no.javazone.feedback.request.channel.toDTO
 import org.slf4j.LoggerFactory
@@ -47,7 +47,7 @@ fun Application.module() {
 
     routing {
         route("/v1/feedback") {
-            val feedbackAdapter = FeedbackAdapterDefault(
+            val feedbackAdapter = FeedbackAdapter(
                 repository = FeedbackRepositoryDb,
                 externalIdGenerator = ExternalIdGeneratorDefault
             )
@@ -55,7 +55,9 @@ fun Application.module() {
                 post {
                     val input = call.receive<FeedbackChannelCreationDTO>()
 
-                    val channel = feedbackAdapter.createFeedbackChannel(input)
+                    val channel = feedbackAdapter.createFeedbackChannel(
+                        input = input.toDomain()
+                    )
                     call.respond(channel.toDTO())
                 }
             }
