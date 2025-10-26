@@ -5,6 +5,7 @@ import no.javazone.feedback.database.models.Feedbacks
 import no.javazone.feedback.database.models.RatingTypes
 import no.javazone.feedback.domain.Feedback
 import no.javazone.feedback.domain.FeedbackChannel
+import no.javazone.feedback.domain.FeedbackRepository
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.insertReturning
 import org.jetbrains.exposed.sql.transactions.transaction

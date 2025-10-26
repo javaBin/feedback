@@ -36,12 +36,14 @@ ktor = [
     "ktor-server-netty",
     "ktor-server-config-yaml",
     "logback-classic",
-    "liquibase",
+]
+database = [
     "exposed-core",
     "exposed-jdbc",
     "exposed-java-time",
     "hikari",
-    "postgres"
+    "postgres",
+    "liquibase"
 ]
 
 [plugins]

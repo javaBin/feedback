@@ -1,2 +1,2 @@
 rootProject.name = "feedback"
-include("core", "domain")
+include("core", "domain", "database")

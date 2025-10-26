@@ -1,7 +1,4 @@
-package no.javazone.feedback.database.repository
-
-import no.javazone.feedback.domain.Feedback
-import no.javazone.feedback.domain.FeedbackChannel
+package no.javazone.feedback.domain
 
 interface FeedbackRepository {
     fun intializeChannel(channel: FeedbackChannel): FeedbackChannel
