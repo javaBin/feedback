@@ -33,7 +33,7 @@ application {
     mainClass = "no.javazone.feedback.AppKt"
 }
 
-tasks.named<Test>("test") {
+tasks.test {
     // Use JUnit Platform for unit tests.
     useJUnitPlatform()
 }

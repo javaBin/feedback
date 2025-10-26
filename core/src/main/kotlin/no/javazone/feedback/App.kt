@@ -1,6 +1,6 @@
 package no.javazone.feedback
 
-import io.ktor.http.HttpStatusCode
+import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
@@ -12,15 +12,9 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import no.javazone.feedback.database.repository.FeedbackRepositoryDb
 import no.javazone.feedback.database.setupDatabase
-import no.javazone.feedback.domain.generators.ExternalIdGeneratorDefault
 import no.javazone.feedback.domain.adapters.FeedbackAdapter
-import no.javazone.feedback.request.channel.FeedbackChannelCreationDTO
-import no.javazone.feedback.request.channel.FeedbackChannelRatingCategoryDTO
-import no.javazone.feedback.request.channel.FeedbackCreationDTO
-import no.javazone.feedback.request.channel.FeedbackDTO
-import no.javazone.feedback.request.channel.FeedbackRatingCreationDTO
-import no.javazone.feedback.request.channel.FeedbackRatingDTO
-import no.javazone.feedback.request.channel.toDTO
+import no.javazone.feedback.domain.generators.ExternalIdGeneratorDefault
+import no.javazone.feedback.request.channel.*
 import org.slf4j.LoggerFactory
 import java.util.concurrent.TimeUnit
 
@@ -104,9 +98,6 @@ fun Application.module() {
                     call.respond(feedbackDto)
                 }
             }
-        }
-        get {
-            call.respond("Hello, World!")
         }
     }
 }

@@ -5,4 +5,13 @@ class FeedbackRating(
     val name: String,
     val typeId: Long = 0,
     val value: Int,
-)
+) {
+    companion object {
+        fun new(name: String, value: Int): FeedbackRating {
+            return FeedbackRating(
+                name = name,
+                value = value
+            )
+        }
+    }
+}
