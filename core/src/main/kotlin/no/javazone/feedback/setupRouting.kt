@@ -91,18 +91,16 @@ fun Application.setupRouting() {
                         "Missing externalId"
                     )
 
-                    val feedbackChannel = feedbackAdapter.getFeedbackChannel(channelId) ?: return@get call.respond(
+                    val qrCodeBytes = feedbackAdapter.generateQrCode(channelId, ::generateQrCodeBytes) ?: return@get call.respond(
                         HttpStatusCode.NotFound,
                         "Channel with id $channelId does not exist"
                     )
-
-                    val qrCode = generateQrCodeBytes(feedbackChannel)
 
                     call.respondOutputStream(
                         contentType = ContentType.Image.PNG,
                         status = HttpStatusCode.OK,
                     ) {
-                        write(qrCode)
+                        write(qrCodeBytes)
                     }
                 }
             }
