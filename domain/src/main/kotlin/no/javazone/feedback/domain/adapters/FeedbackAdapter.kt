@@ -31,4 +31,6 @@ class FeedbackAdapter(
             feedback = createdFeedback
         )
     }
+
+    fun getFeedbackChannel(channelId: String) = repository.findByChannelId(channelId)
 }

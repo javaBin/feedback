@@ -8,6 +8,7 @@ exposed = "0.61.0"
 hikari = "7.0.2"
 postgres = "42.7.8"
 testcontainers = "1.20.0"
+qrcode = "4.5.0"
 
 
 [libraries]
@@ -31,6 +32,7 @@ hikari = { module = "com.zaxxer:HikariCP", version.ref = "hikari" }
 postgres = { module = "org.postgresql:postgresql", version.ref = "postgres" }
 testcontainers = { module = "org.testcontainers:testcontainers", version.ref = "testcontainers" }
 testcontainers-postgresql = { module = "org.testcontainers:postgresql", version.ref = "testcontainers" }
+qrcode = { module = "io.github.g0dkar:qrcode-kotlin", version.ref = "qrcode"}
 
 [bundles]
 ktor = [

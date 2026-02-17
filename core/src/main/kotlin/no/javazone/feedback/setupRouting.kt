@@ -1,9 +1,12 @@
 package no.javazone.feedback
 
+import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
+import io.ktor.server.response.respondOutputStream
+import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
@@ -11,6 +14,7 @@ import no.javazone.feedback.database.repository.FeedbackRepositoryDb
 import no.javazone.feedback.domain.adapters.FeedbackAdapter
 import no.javazone.feedback.domain.errors.ChannelNotFoundError
 import no.javazone.feedback.domain.generators.ExternalIdGeneratorDefault
+import no.javazone.feedback.qrcode.generateQrCodeBytes
 import no.javazone.feedback.request.channel.FeedbackChannelCreationDTO
 import no.javazone.feedback.request.channel.FeedbackChannelRatingCategoryDTO
 import no.javazone.feedback.request.channel.FeedbackCreationDTO
@@ -79,6 +83,27 @@ fun Application.setupRouting() {
                     }
 
                     call.respond(feedbackDto)
+                }
+
+                get("{channelId}/qrcode") {
+                    val channelId = call.parameters["channelId"] ?: return@get call.respond(
+                        HttpStatusCode.NotFound,
+                        "Missing externalId"
+                    )
+
+                    val feedbackChannel = feedbackAdapter.getFeedbackChannel(channelId) ?: return@get call.respond(
+                        HttpStatusCode.NotFound,
+                        "Channel with id $channelId does not exist"
+                    )
+
+                    val qrCode = generateQrCodeBytes(feedbackChannel)
+
+                    call.respondOutputStream(
+                        contentType = ContentType.Image.PNG,
+                        status = HttpStatusCode.OK,
+                    ) {
+                        write(qrCode)
+                    }
                 }
             }
         }

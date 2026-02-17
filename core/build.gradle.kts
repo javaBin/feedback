@@ -18,6 +18,7 @@ dependencies {
     implementation(project(":domain"))
     implementation(project(":database"))
     implementation(libs.bundles.ktor)
+    implementation(libs.qrcode)
     // Use JUnit Jupiter for testing.
     testImplementation(libs.ktor.server.test.host)
     testImplementation(libs.junit.jupiter)
