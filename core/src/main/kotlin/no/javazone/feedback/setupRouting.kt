@@ -14,7 +14,7 @@ import no.javazone.feedback.database.repository.FeedbackRepositoryDb
 import no.javazone.feedback.domain.adapters.FeedbackAdapter
 import no.javazone.feedback.domain.errors.ChannelNotFoundError
 import no.javazone.feedback.domain.generators.ExternalIdGeneratorDefault
-import no.javazone.feedback.qrcode.generateQrCodeBytes
+import no.javazone.feedback.qrcode.QRCodeGenerator
 import no.javazone.feedback.request.channel.FeedbackChannelCreationDTO
 import no.javazone.feedback.request.channel.FeedbackChannelRatingCategoryDTO
 import no.javazone.feedback.request.channel.FeedbackCreationDTO
@@ -29,6 +29,8 @@ fun Application.setupRouting() {
                 repository = FeedbackRepositoryDb,
                 externalIdGenerator = ExternalIdGeneratorDefault
             )
+            val qrCodeGenerator = QRCodeGenerator()
+
             route("channel") {
                 post {
                     val input = call.receive<FeedbackChannelCreationDTO>()
@@ -91,7 +93,10 @@ fun Application.setupRouting() {
                         "Missing externalId"
                     )
 
-                    val qrCodeBytes = feedbackAdapter.generateQrCode(channelId, ::generateQrCodeBytes) ?: return@get call.respond(
+                    val qrCodeBytes = feedbackAdapter.generateQrCode(
+                        channelId = channelId,
+                        qrCodeGenerator = qrCodeGenerator::generateQrCodeBytes
+                    ) ?: return@get call.respond(
                         HttpStatusCode.NotFound,
                         "Channel with id $channelId does not exist"
                     )
