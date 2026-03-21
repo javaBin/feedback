@@ -1,0 +1,8 @@
+.git
+.gitattributes
+.gradle
+.idea
+.kotlin
+build
+*/build
+*.md

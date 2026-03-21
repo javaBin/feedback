@@ -1,0 +1,14 @@
+ktor:
+  deployment:
+    port: ${PORT:8080}
+    host: "0.0.0.0"
+  application:
+    modules:
+      - no.javazone.feedback.AppKt.module
+
+database:
+  host: ${DATABASE_HOST:localhost}
+  port: ${DATABASE_PORT:5432}
+  name: ${DATABASE_NAME:feedback}
+  username: ${DATABASE_USERNAME:feedback}
+  password: ${DATABASE_PASSWORD:feedback}
