@@ -36,6 +36,7 @@ fun Application.setupRouting() {
         val qrCodeGenerator = QRCodeGenerator()
 
         staticResources("/static", "static")
+        staticResources("/", "static")
 
         get("/health") {
             if (isDatabaseHealthy()) {
@@ -45,16 +46,18 @@ fun Application.setupRouting() {
             }
         }
 
-        get("/{channelId}") {
-            val channelId = call.parameters["channelId"]
-                ?: return@get call.respond(HttpStatusCode.NotFound)
-            val channel = feedbackAdapter.findChannel(channelId)
-                ?: return@get call.respond(HttpStatusCode.NotFound, "Channel not found")
-            call.respondHtml { feedbackPage(channel) }
-        }
+        route("session") {
+            get("/{channelId}") {
+                val channelId = call.parameters["channelId"]
+                    ?: return@get call.respond(HttpStatusCode.NotFound)
+                val channel = feedbackAdapter.findChannel(channelId)
+                    ?: return@get call.respond(HttpStatusCode.NotFound, "Channel not found")
+                call.respondHtml { feedbackPage(channel) }
+            }
 
-        get("/{channelId}/thank-you") {
-            call.respondHtml { thankYouFragment() }
+            get("/{channelId}/thank-you") {
+                call.respondHtml { thankYouFragment() }
+            }
         }
 
         route("/v1/feedback") {

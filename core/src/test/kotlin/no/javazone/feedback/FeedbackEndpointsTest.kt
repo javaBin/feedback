@@ -264,7 +264,7 @@ class FeedbackEndpointsTest {
             )
         }.body<FeedbackChannelDTO>()
 
-        val response = client.get("/${channel.channelId}")
+        val response = client.get("/session/${channel.channelId}")
 
         assertEquals(HttpStatusCode.OK, response.status)
         assertEquals(ContentType.Text.Html.withCharset(Charsets.UTF_8), response.contentType())
@@ -295,7 +295,7 @@ class FeedbackEndpointsTest {
             module(TestDatabase.config())
         }
 
-        val response = client.get("/any-channel/thank-you")
+        val response = client.get("/session/any-channel/thank-you")
 
         assertEquals(HttpStatusCode.OK, response.status)
         assertEquals(ContentType.Text.Html.withCharset(Charsets.UTF_8), response.contentType())
@@ -354,7 +354,7 @@ class FeedbackEndpointsTest {
             )
         }.body<FeedbackChannelDTO>()
 
-        val body = client.get("/${channel.channelId}").bodyAsText()
+        val body = client.get("/session/${channel.channelId}").bodyAsText()
 
         // Each rating category should have a fieldset with 5 radio inputs
         for (category in channel.ratingCategories) {

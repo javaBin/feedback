@@ -10,7 +10,7 @@ class QRCodeGenerator(private val logoFilePath: String = "duke_small.png") {
             .ofSquares()
             .withSize(40)
             .withLogo(logo = logoBytes, width = 100, height = 100)
-            .build(data = "https://feedback.java.no/${feedbackChannel.externalId}")
+            .build(data = "https://feedback.java.no/session/${feedbackChannel.externalId}")
             .renderToBytes()
     }
 }
