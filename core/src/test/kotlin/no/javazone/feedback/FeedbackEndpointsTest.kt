@@ -236,4 +236,119 @@ class FeedbackEndpointsTest {
         // All external IDs should be unique
         assertEquals(5, externalIds.size)
     }
+
+    @Test
+    fun `test feedback page returns HTML for valid channel`() = testApplication {
+        application {
+            module(TestDatabase.config())
+        }
+
+        val jsonClient = createClient {
+            install(ContentNegotiation) {
+                json()
+            }
+        }
+
+        val channel = jsonClient.post("/v1/feedback/channel") {
+            contentType(ContentType.Application.Json)
+            setBody(
+                FeedbackChannelCreationDTO(
+                    title = "Kotlin Coroutines",
+                    speakers = listOf("Alice", "Bob"),
+                    channelPrefix = "coroutines",
+                    ratingCategories = listOf(
+                        FeedbackChannelRatingCategoryDTO(id = null, title = "Content"),
+                        FeedbackChannelRatingCategoryDTO(id = null, title = "Delivery")
+                    )
+                )
+            )
+        }.body<FeedbackChannelDTO>()
+
+        val response = client.get("/${channel.channelId}")
+
+        assertEquals(HttpStatusCode.OK, response.status)
+        assertEquals(ContentType.Text.Html.withCharset(Charsets.UTF_8), response.contentType())
+
+        val body = response.bodyAsText()
+        assertTrue(body.contains("Kotlin Coroutines"))
+        assertTrue(body.contains("Alice, Bob"))
+        assertTrue(body.contains("Content"))
+        assertTrue(body.contains("Delivery"))
+        assertTrue(body.contains("feedback-form"))
+        assertTrue(body.contains("data-channel-id=\"${channel.channelId}\""))
+    }
+
+    @Test
+    fun `test feedback page returns 404 for non-existent channel`() = testApplication {
+        application {
+            module(TestDatabase.config())
+        }
+
+        val response = client.get("/non-existent-channel")
+
+        assertEquals(HttpStatusCode.NotFound, response.status)
+    }
+
+    @Test
+    fun `test thank you page returns HTML fragment`() = testApplication {
+        application {
+            module(TestDatabase.config())
+        }
+
+        val response = client.get("/any-channel/thank-you")
+
+        assertEquals(HttpStatusCode.OK, response.status)
+        assertEquals(ContentType.Text.Html.withCharset(Charsets.UTF_8), response.contentType())
+
+        val body = response.bodyAsText()
+        assertTrue(body.contains("Thank you!"))
+        assertTrue(body.contains("Your feedback has been submitted."))
+        assertTrue(body.contains("thank-you"))
+    }
+
+    @Test
+    fun `test feedback page contains rating inputs for each category`() = testApplication {
+        application {
+            module(TestDatabase.config())
+        }
+
+        val jsonClient = createClient {
+            install(ContentNegotiation) {
+                json()
+            }
+        }
+
+        val channel = jsonClient.post("/v1/feedback/channel") {
+            contentType(ContentType.Application.Json)
+            setBody(
+                FeedbackChannelCreationDTO(
+                    title = "Microservices Patterns",
+                    speakers = listOf("Charlie"),
+                    channelPrefix = "micro",
+                    ratingCategories = listOf(
+                        FeedbackChannelRatingCategoryDTO(id = null, title = "Depth"),
+                        FeedbackChannelRatingCategoryDTO(id = null, title = "Clarity"),
+                        FeedbackChannelRatingCategoryDTO(id = null, title = "Pace")
+                    )
+                )
+            )
+        }.body<FeedbackChannelDTO>()
+
+        val body = client.get("/${channel.channelId}").bodyAsText()
+
+        // Each rating category should have a fieldset with 5 radio inputs
+        for (category in channel.ratingCategories) {
+            assertTrue(body.contains("rating-${category.id}"), "Missing rating group for ${category.title}")
+            for (score in 1..5) {
+                assertTrue(
+                    body.contains("rating-${category.id}-$score"),
+                    "Missing radio button $score for ${category.title}"
+                )
+            }
+        }
+
+        // Should contain the comment textarea
+        assertTrue(body.contains("detailed-comment"))
+        assertTrue(body.contains("submit-btn"))
+    }
 }
