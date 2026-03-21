@@ -1,0 +1,186 @@
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: #f5f5f5;
+    color: #1a1a1a;
+    line-height: 1.6;
+    min-height: 100dvh;
+}
+
+main {
+    max-width: 540px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+}
+
+.card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+
+.speakers {
+    color: #666;
+    margin-bottom: 2rem;
+    font-size: 0.95rem;
+}
+
+fieldset.rating-group {
+    border: none;
+    margin-bottom: 1.5rem;
+}
+
+fieldset.rating-group legend {
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.rating-buttons {
+    display: flex;
+    gap: 0;
+}
+
+.rating-buttons input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.rating-buttons label {
+    flex: 1;
+    text-align: center;
+    padding: 0.6rem 0;
+    cursor: pointer;
+    border: 1px solid #ddd;
+    background: #fafafa;
+    font-weight: 500;
+    font-size: 0.95rem;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+    user-select: none;
+}
+
+.rating-buttons label:first-of-type {
+    border-radius: 8px 0 0 8px;
+}
+
+.rating-buttons label:last-of-type {
+    border-radius: 0 8px 8px 0;
+}
+
+.rating-buttons label:not(:first-of-type) {
+    border-left: none;
+}
+
+.rating-buttons input[type="radio"]:checked + label {
+    background: #2563eb;
+    color: #fff;
+    border-color: #2563eb;
+}
+
+.rating-buttons input[type="radio"]:checked + label + label {
+    border-left-color: #2563eb;
+}
+
+.comment-group {
+    margin-bottom: 1.5rem;
+}
+
+.comment-group label {
+    display: block;
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin-bottom: 0.5rem;
+}
+
+.comment-group textarea {
+    width: 100%;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 0.75rem;
+    font-family: inherit;
+    font-size: 0.95rem;
+    resize: vertical;
+    line-height: 1.5;
+}
+
+.comment-group textarea:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+}
+
+button[type="submit"] {
+    width: 100%;
+    padding: 0.85rem;
+    background: #2563eb;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+button[type="submit"]:hover {
+    background: #1d4ed8;
+}
+
+button[type="submit"]:disabled {
+    background: #93b4f5;
+    cursor: not-allowed;
+}
+
+.error-message {
+    color: #dc2626;
+    font-size: 0.9rem;
+    margin-top: 1rem;
+    text-align: center;
+    min-height: 0;
+}
+
+.error-message:empty {
+    display: none;
+}
+
+.thank-you {
+    text-align: center;
+    padding: 3rem 2rem;
+}
+
+.thank-you .checkmark {
+    width: 64px;
+    height: 64px;
+    background: #22c55e;
+    color: #fff;
+    border-radius: 50%;
+    font-size: 2rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+}
+
+.thank-you h1 {
+    margin-bottom: 0.5rem;
+}
+
+.thank-you p {
+    color: #666;
+}

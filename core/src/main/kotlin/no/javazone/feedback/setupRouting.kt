@@ -3,6 +3,8 @@ package no.javazone.feedback
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
+import io.ktor.server.html.respondHtml
+import io.ktor.server.http.content.staticResources
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.response.respondOutputStream
@@ -14,6 +16,8 @@ import no.javazone.feedback.database.repository.FeedbackRepositoryDb
 import no.javazone.feedback.domain.adapters.FeedbackAdapter
 import no.javazone.feedback.domain.errors.ChannelNotFoundError
 import no.javazone.feedback.domain.generators.ExternalIdGeneratorDefault
+import no.javazone.feedback.pages.feedbackPage
+import no.javazone.feedback.pages.thankYouFragment
 import no.javazone.feedback.qrcode.QRCodeGenerator
 import no.javazone.feedback.request.channel.FeedbackChannelCreationDTO
 import no.javazone.feedback.request.channel.FeedbackChannelRatingCategoryDTO
@@ -24,13 +28,27 @@ import no.javazone.feedback.request.channel.toDTO
 
 fun Application.setupRouting() {
     routing {
-        route("/v1/feedback") {
-            val feedbackAdapter = FeedbackAdapter(
-                repository = FeedbackRepositoryDb,
-                externalIdGenerator = ExternalIdGeneratorDefault
-            )
-            val qrCodeGenerator = QRCodeGenerator()
+        val feedbackAdapter = FeedbackAdapter(
+            repository = FeedbackRepositoryDb,
+            externalIdGenerator = ExternalIdGeneratorDefault
+        )
+        val qrCodeGenerator = QRCodeGenerator()
 
+        staticResources("/static", "static")
+
+        get("/{channelId}") {
+            val channelId = call.parameters["channelId"]
+                ?: return@get call.respond(HttpStatusCode.NotFound)
+            val channel = feedbackAdapter.findChannel(channelId)
+                ?: return@get call.respond(HttpStatusCode.NotFound, "Channel not found")
+            call.respondHtml { feedbackPage(channel) }
+        }
+
+        get("/{channelId}/thank-you") {
+            call.respondHtml { thankYouFragment() }
+        }
+
+        route("/v1/feedback") {
             route("channel") {
                 post {
                     val input = call.receive<FeedbackChannelCreationDTO>()
