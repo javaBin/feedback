@@ -18,6 +18,7 @@ import no.javazone.feedback.domain.adapters.FeedbackAdapter
 import no.javazone.feedback.domain.errors.ChannelNotFoundError
 import no.javazone.feedback.domain.generators.ExternalIdGeneratorDefault
 import no.javazone.feedback.pages.feedbackPage
+import no.javazone.feedback.pages.landingPage
 import no.javazone.feedback.pages.thankYouFragment
 import no.javazone.feedback.qrcode.QRCodeGenerator
 import no.javazone.feedback.request.channel.FeedbackChannelCreationDTO
@@ -37,6 +38,11 @@ fun Application.setupRouting() {
 
         staticResources("/static", "static")
         staticResources("/", "static")
+
+        get("/") {
+            val channels = feedbackAdapter.findAllChannels()
+            call.respondHtml { landingPage(channels) }
+        }
 
         get("/health") {
             if (isDatabaseHealthy()) {

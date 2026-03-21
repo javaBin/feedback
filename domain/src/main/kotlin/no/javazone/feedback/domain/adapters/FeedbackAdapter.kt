@@ -36,6 +36,10 @@ class FeedbackAdapter(
         return repository.findByChannelId(channelId)
     }
 
+    fun findAllChannels(): List<FeedbackChannel> {
+        return repository.findAllChannels()
+    }
+
     fun generateQrCode(channelId: String, qrCodeGenerator: (FeedbackChannel) -> ByteArray): ByteArray? {
         return repository.findByChannelId(channelId)?.let {
             qrCodeGenerator(it)

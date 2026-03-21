@@ -10,6 +10,5 @@ class FeedbackChannel(
     init {
         require(speakers.all { it.isNotEmpty() }) { "All speakers must not be empty." }
         require(title.isNotEmpty()) { "Title must not be empty." }
-        require(ratingCategories.isNotEmpty()) { "Ratings must not be empty." }
     }
 }

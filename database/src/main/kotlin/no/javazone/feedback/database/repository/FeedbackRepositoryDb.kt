@@ -84,6 +84,25 @@ object FeedbackRepositoryDb : FeedbackRepository {
         }
     }
 
+    override fun findAllChannels(): List<FeedbackChannel> {
+        return transaction {
+            val results = FeedbackChannels.selectAll()
+
+            results
+                .groupBy { it[FeedbackChannels.id].value }
+                .map { (_, rows) ->
+                    val firstRow = rows.first()
+                    FeedbackChannel(
+                        id = firstRow[FeedbackChannels.id].value,
+                        title = firstRow[FeedbackChannels.title],
+                        speakers = firstRow[FeedbackChannels.speakers],
+                        externalId = firstRow[FeedbackChannels.externalId],
+                        ratingCategories = emptyList()
+                    )
+                }
+        }
+    }
+
     override fun findByChannelId(channelId: String): FeedbackChannel? {
         return transaction {
             val results = FeedbackChannels.join(otherTable = RatingTypes, joinType = JoinType.INNER) {
