@@ -33,6 +33,7 @@ postgres = { module = "org.postgresql:postgresql", version.ref = "postgres" }
 testcontainers = { module = "org.testcontainers:testcontainers", version.ref = "testcontainers" }
 testcontainers-postgresql = { module = "org.testcontainers:postgresql", version.ref = "testcontainers" }
 qrcode = { module = "io.github.g0dkar:qrcode-kotlin", version.ref = "qrcode"}
+ktor-server-html-builder = { module = "io.ktor:ktor-server-html-builder", version.ref = "ktor" }
 
 [bundles]
 ktor = [
@@ -43,6 +44,7 @@ ktor = [
     "ktor-server-auth",
     "ktor-server-netty",
     "ktor-server-config-yaml",
+    "ktor-server-html-builder",
     "ktor-client-core",
     "ktor-client-content-negotiation",
     "logback-classic",
