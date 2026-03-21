@@ -12,6 +12,7 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
+import no.javazone.feedback.database.isDatabaseHealthy
 import no.javazone.feedback.database.repository.FeedbackRepositoryDb
 import no.javazone.feedback.domain.adapters.FeedbackAdapter
 import no.javazone.feedback.domain.errors.ChannelNotFoundError
@@ -35,6 +36,14 @@ fun Application.setupRouting() {
         val qrCodeGenerator = QRCodeGenerator()
 
         staticResources("/static", "static")
+
+        get("/health") {
+            if (isDatabaseHealthy()) {
+                call.respond(HttpStatusCode.OK, mapOf("status" to "ok"))
+            } else {
+                call.respond(HttpStatusCode.ServiceUnavailable, mapOf("status" to "unhealthy", "reason" to "database connection failed"))
+            }
+        }
 
         get("/{channelId}") {
             val channelId = call.parameters["channelId"]

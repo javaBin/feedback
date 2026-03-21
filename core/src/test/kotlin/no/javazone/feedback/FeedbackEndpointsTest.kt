@@ -307,6 +307,26 @@ class FeedbackEndpointsTest {
     }
 
     @Test
+    fun `test health endpoint returns ok when database is healthy`() = testApplication {
+        application {
+            module(TestDatabase.config())
+        }
+
+        val client = createClient {
+            install(ContentNegotiation) {
+                json()
+            }
+        }
+
+        val response = client.get("/health")
+
+        assertEquals(HttpStatusCode.OK, response.status)
+
+        val body = Json.decodeFromString<Map<String, String>>(response.bodyAsText())
+        assertEquals("ok", body["status"])
+    }
+
+    @Test
     fun `test feedback page contains rating inputs for each category`() = testApplication {
         application {
             module(TestDatabase.config())
