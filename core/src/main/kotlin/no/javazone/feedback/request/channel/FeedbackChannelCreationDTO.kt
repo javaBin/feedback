@@ -14,7 +14,6 @@ data class FeedbackChannelCreationDTO(
         return FeedbackChannelCreationInput(
             title = title,
             speakers = speakers,
-            channelTag = channelPrefix ?: "feedback",
             ratings = ratingCategories.map { it.toDomain() }
         )
     }

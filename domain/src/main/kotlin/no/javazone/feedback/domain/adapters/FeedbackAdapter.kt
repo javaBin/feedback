@@ -16,7 +16,7 @@ class FeedbackAdapter(
         val channel = FeedbackChannel(
             title = input.title,
             speakers = input.speakers,
-            externalId = "${input.channelTag}-${externalIdGenerator.generate()}",
+            externalId = externalIdGenerator.generate(),
             ratingCategories = input.ratings
         )
         return repository.intializeChannel(channel)
