@@ -7,7 +7,6 @@ import no.javazone.feedback.domain.FeedbackChannelCreationInput
 data class FeedbackChannelCreationDTO(
     val title: String,
     val speakers: List<String>,
-    val channelPrefix: String?,
     val ratingCategories: List<FeedbackChannelRatingCategoryDTO>
 ) {
     fun toDomain(): FeedbackChannelCreationInput {

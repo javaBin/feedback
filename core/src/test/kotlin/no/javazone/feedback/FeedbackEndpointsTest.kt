@@ -46,7 +46,6 @@ class FeedbackEndpointsTest {
         val channelCreationDto = FeedbackChannelCreationDTO(
             title = "Introduction to Kotlin",
             speakers = listOf("John Doe", "Jane Smith"),
-            channelPrefix = "kotlin",
             ratingCategories = listOf(
                 FeedbackChannelRatingCategoryDTO(id = null, title = "Content Quality"),
                 FeedbackChannelRatingCategoryDTO(id = null, title = "Presentation")
@@ -83,7 +82,6 @@ class FeedbackEndpointsTest {
         val channelCreationDto = FeedbackChannelCreationDTO(
             title = "Advanced Java",
             speakers = listOf("Alice Brown"),
-            channelPrefix = "java",
             ratingCategories = listOf(
                 FeedbackChannelRatingCategoryDTO(id = null, title = "Content"),
                 FeedbackChannelRatingCategoryDTO(id = null, title = "Delivery")
@@ -164,7 +162,6 @@ class FeedbackEndpointsTest {
         val channelCreationDto = FeedbackChannelCreationDTO(
             title = "Spring Boot Basics",
             speakers = listOf("Bob Wilson"),
-            channelPrefix = "spring",
             ratingCategories = listOf(
                 FeedbackChannelRatingCategoryDTO(id = null, title = "Technical Depth")
             )
@@ -216,7 +213,6 @@ class FeedbackEndpointsTest {
             val channelCreationDto = FeedbackChannelCreationDTO(
                 title = "Session $index",
                 speakers = listOf("Speaker $index"),
-                channelPrefix = "test",
                 ratingCategories = listOf(
                     FeedbackChannelRatingCategoryDTO(id = null, title = "Rating")
                 )
@@ -255,7 +251,6 @@ class FeedbackEndpointsTest {
                 FeedbackChannelCreationDTO(
                     title = "Kotlin Coroutines",
                     speakers = listOf("Alice", "Bob"),
-                    channelPrefix = "coroutines",
                     ratingCategories = listOf(
                         FeedbackChannelRatingCategoryDTO(id = null, title = "Content"),
                         FeedbackChannelRatingCategoryDTO(id = null, title = "Delivery")
@@ -344,7 +339,6 @@ class FeedbackEndpointsTest {
                 FeedbackChannelCreationDTO(
                     title = "Microservices Patterns",
                     speakers = listOf("Charlie"),
-                    channelPrefix = "micro",
                     ratingCategories = listOf(
                         FeedbackChannelRatingCategoryDTO(id = null, title = "Depth"),
                         FeedbackChannelRatingCategoryDTO(id = null, title = "Clarity"),
