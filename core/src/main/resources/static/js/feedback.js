@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             if (response.ok) {
-                htmx.ajax('GET', `/${channelId}/thank-you`, {
+                htmx.ajax('GET', `/session/${channelId}/thank-you`, {
                     target: '#feedback-form',
                     swap: 'outerHTML',
                 });
