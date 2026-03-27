@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertInstanceOf
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
@@ -28,6 +29,11 @@ class FeedbackRepositoryDbTest {
         fun tearDown() {
             TestDatabase.stop()
         }
+    }
+
+    @BeforeEach
+    fun cleanDatabase() {
+        TestDatabase.cleanDatabase()
     }
 
     @Test

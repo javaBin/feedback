@@ -9,11 +9,13 @@ import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.testing.*
 import kotlinx.serialization.json.Json
 import no.javazone.feedback.database.TestDatabase
+import no.javazone.feedback.database.setupDatabase
 import no.javazone.feedback.request.channel.*
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 class FeedbackEndpointsTest {
@@ -22,6 +24,7 @@ class FeedbackEndpointsTest {
         @JvmStatic
         fun setup() {
             TestDatabase.start()
+            setupDatabase(TestDatabase.config())
         }
 
         @AfterAll
@@ -29,6 +32,11 @@ class FeedbackEndpointsTest {
         fun tearDown() {
             TestDatabase.stop()
         }
+    }
+
+    @BeforeEach
+    fun cleanDatabase() {
+        TestDatabase.cleanDatabase()
     }
 
     @Test

@@ -1,5 +1,6 @@
 package no.javazone.feedback.database
 
+import org.jetbrains.exposed.sql.transactions.transaction
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.containers.wait.strategy.HostPortWaitStrategy
 
@@ -26,5 +27,11 @@ object TestDatabase {
             username = container.username,
             password = container.password
         )
+    }
+
+    fun cleanDatabase() {
+        transaction {
+            exec("TRUNCATE feedback_rating, feedback, rating_type, feedback_channel RESTART IDENTITY CASCADE")
+        }
     }
 }
