@@ -279,9 +279,31 @@ class FeedbackEndpointsTest {
             module(TestDatabase.config())
         }
 
-        val response = client.get("/non-existent-channel")
+        val response = client.get("/session/ZZZZ")
 
         assertEquals(HttpStatusCode.NotFound, response.status)
+    }
+
+    @Test
+    fun `test session endpoint returns bad request for channel id longer than four characters`() = testApplication {
+        application {
+            module(TestDatabase.config())
+        }
+
+        val response = client.get("/session/ABCDE")
+
+        assertEquals(HttpStatusCode.BadRequest, response.status)
+    }
+
+    @Test
+    fun `test session endpoint returns bad request for channel id shorter than four characters`() = testApplication {
+        application {
+            module(TestDatabase.config())
+        }
+
+        val response = client.get("/session/ABC")
+
+        assertEquals(HttpStatusCode.BadRequest, response.status)
     }
 
     @Test

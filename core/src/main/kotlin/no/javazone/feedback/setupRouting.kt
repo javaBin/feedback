@@ -56,6 +56,9 @@ fun Application.setupRouting() {
             get("/{channelId}") {
                 val channelId = call.parameters["channelId"]
                     ?: return@get call.respond(HttpStatusCode.NotFound)
+                if (channelId.length != 4) {
+                    return@get call.respond(HttpStatusCode.BadRequest)
+                }
                 val channel = feedbackAdapter.findChannel(channelId)
                     ?: return@get call.respond(HttpStatusCode.NotFound, "Channel not found")
                 call.respondHtml { feedbackPage(channel) }
