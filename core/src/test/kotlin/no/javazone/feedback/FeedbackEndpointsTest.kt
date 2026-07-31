@@ -3,7 +3,9 @@ package no.javazone.feedback
 import io.ktor.client.call.body
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
-import io.ktor.client.statement.*import io.ktor.http.*
+import io.ktor.client.request.HttpRequestBuilder
+import io.ktor.client.statement.*
+import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.testing.*
 import kotlinx.serialization.json.Json
@@ -16,9 +18,14 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import java.util.Base64
 
 class FeedbackEndpointsTest {
     companion object {
+        private const val ADMIN_USER = "test-admin"
+        private const val ADMIN_PASS = "test-password"
+        private val testAuthConfig = AuthConfig(ADMIN_USER, ADMIN_PASS)
+
         @BeforeAll
         @JvmStatic
         fun setup() {
@@ -33,6 +40,14 @@ class FeedbackEndpointsTest {
         }
     }
 
+    private fun HttpRequestBuilder.adminAuth(
+        user: String = ADMIN_USER,
+        password: String = ADMIN_PASS,
+    ) {
+        val token = Base64.getEncoder().encodeToString("$user:$password".toByteArray())
+        header(HttpHeaders.Authorization, "Basic $token")
+    }
+
     @BeforeEach
     fun cleanDatabase() {
         TestDatabase.cleanDatabase()
@@ -41,7 +56,7 @@ class FeedbackEndpointsTest {
     @Test
     fun `test create feedback channel successfully`() = testApplication {
         application {
-            module(TestDatabase.config())
+            module(TestDatabase.config(), testAuthConfig)
         }
 
         val client = createClient {
@@ -60,6 +75,7 @@ class FeedbackEndpointsTest {
         )
 
         val response = client.post("/v1/feedback/channel") {
+            adminAuth()
             contentType(ContentType.Application.Json)
             setBody(channelCreationDto)
         }
@@ -76,7 +92,7 @@ class FeedbackEndpointsTest {
     @Test
     fun `newly created channel is closed by default`() = testApplication {
         application {
-            module(TestDatabase.config())
+            module(TestDatabase.config(), testAuthConfig)
         }
 
         val client = createClient {
@@ -86,6 +102,7 @@ class FeedbackEndpointsTest {
         }
 
         val channel = client.post("/v1/feedback/channel") {
+            adminAuth()
             contentType(ContentType.Application.Json)
             setBody(
                 FeedbackChannelCreationDTO(
@@ -102,7 +119,7 @@ class FeedbackEndpointsTest {
     @Test
     fun `submitting feedback to closed channel returns forbidden`() = testApplication {
         application {
-            module(TestDatabase.config())
+            module(TestDatabase.config(), testAuthConfig)
         }
 
         val client = createClient {
@@ -112,6 +129,7 @@ class FeedbackEndpointsTest {
         }
 
         val channel = client.post("/v1/feedback/channel") {
+            adminAuth()
             contentType(ContentType.Application.Json)
             setBody(
                 FeedbackChannelCreationDTO(
@@ -138,7 +156,7 @@ class FeedbackEndpointsTest {
     @Test
     fun `patch channel opens the channel and allows submissions`() = testApplication {
         application {
-            module(TestDatabase.config())
+            module(TestDatabase.config(), testAuthConfig)
         }
 
         val client = createClient {
@@ -148,6 +166,7 @@ class FeedbackEndpointsTest {
         }
 
         val channel = client.post("/v1/feedback/channel") {
+            adminAuth()
             contentType(ContentType.Application.Json)
             setBody(
                 FeedbackChannelCreationDTO(
@@ -159,6 +178,7 @@ class FeedbackEndpointsTest {
         }.body<FeedbackChannelDTO>()
 
         val patched = client.patch("/v1/feedback/channel/${channel.channelId}") {
+            adminAuth()
             contentType(ContentType.Application.Json)
             setBody(FeedbackChannelUpdateDTO(isOpen = true))
         }
@@ -181,7 +201,7 @@ class FeedbackEndpointsTest {
     @Test
     fun `patch channel returns not found for unknown channel`() = testApplication {
         application {
-            module(TestDatabase.config())
+            module(TestDatabase.config(), testAuthConfig)
         }
 
         val client = createClient {
@@ -191,6 +211,7 @@ class FeedbackEndpointsTest {
         }
 
         val response = client.patch("/v1/feedback/channel/ZZZZ") {
+            adminAuth()
             contentType(ContentType.Application.Json)
             setBody(FeedbackChannelUpdateDTO(isOpen = true))
         }
@@ -199,9 +220,104 @@ class FeedbackEndpointsTest {
     }
 
     @Test
+    fun `create channel without auth returns unauthorized`() = testApplication {
+        application {
+            module(TestDatabase.config(), testAuthConfig)
+        }
+
+        val client = createClient {
+            install(ContentNegotiation) {
+                json()
+            }
+        }
+
+        val response = client.post("/v1/feedback/channel") {
+            contentType(ContentType.Application.Json)
+            setBody(
+                FeedbackChannelCreationDTO(
+                    title = "Unauthorized",
+                    speakers = listOf("Speaker"),
+                    ratingCategories = listOf(FeedbackChannelRatingCategoryDTO(id = null, title = "Rating")),
+                )
+            )
+        }
+
+        assertEquals(HttpStatusCode.Unauthorized, response.status)
+    }
+
+    @Test
+    fun `create channel with wrong credentials returns unauthorized`() = testApplication {
+        application {
+            module(TestDatabase.config(), testAuthConfig)
+        }
+
+        val client = createClient {
+            install(ContentNegotiation) {
+                json()
+            }
+        }
+
+        val response = client.post("/v1/feedback/channel") {
+            adminAuth(user = "wrong", password = "wrong")
+            contentType(ContentType.Application.Json)
+            setBody(
+                FeedbackChannelCreationDTO(
+                    title = "Unauthorized",
+                    speakers = listOf("Speaker"),
+                    ratingCategories = listOf(FeedbackChannelRatingCategoryDTO(id = null, title = "Rating")),
+                )
+            )
+        }
+
+        assertEquals(HttpStatusCode.Unauthorized, response.status)
+    }
+
+    @Test
+    fun `patch channel without auth returns unauthorized`() = testApplication {
+        application {
+            module(TestDatabase.config(), testAuthConfig)
+        }
+
+        val response = client.patch("/v1/feedback/channel/ABCD") {
+            contentType(ContentType.Application.Json)
+            setBody("""{"isOpen": true}""")
+        }
+
+        assertEquals(HttpStatusCode.Unauthorized, response.status)
+    }
+
+    @Test
+    fun `qrcode endpoint does not require auth`() = testApplication {
+        application {
+            module(TestDatabase.config(), testAuthConfig)
+        }
+
+        val client = createClient {
+            install(ContentNegotiation) {
+                json()
+            }
+        }
+
+        val channel = client.post("/v1/feedback/channel") {
+            adminAuth()
+            contentType(ContentType.Application.Json)
+            setBody(
+                FeedbackChannelCreationDTO(
+                    title = "QR",
+                    speakers = listOf("Speaker"),
+                    ratingCategories = listOf(FeedbackChannelRatingCategoryDTO(id = null, title = "Rating")),
+                )
+            )
+        }.body<FeedbackChannelDTO>()
+
+        val response = client.get("/v1/feedback/channel/${channel.channelId}/qrcode")
+        assertEquals(HttpStatusCode.OK, response.status)
+    }
+
+    @Test
     fun `test submit feedback successfully`() = testApplication {
         application {
-            module(TestDatabase.config())
+            module(TestDatabase.config(), testAuthConfig)
         }
 
         val client = createClient {
@@ -221,6 +337,7 @@ class FeedbackEndpointsTest {
         )
 
         val channel = client.post("/v1/feedback/channel") {
+            adminAuth()
             contentType(ContentType.Application.Json)
             setBody(channelCreationDto)
         }.body<FeedbackChannelDTO>()
@@ -228,6 +345,7 @@ class FeedbackEndpointsTest {
         val channelId = channel.channelId
 
         client.patch("/v1/feedback/channel/$channelId") {
+            adminAuth()
             contentType(ContentType.Application.Json)
             setBody(FeedbackChannelUpdateDTO(isOpen = true))
         }
@@ -259,7 +377,7 @@ class FeedbackEndpointsTest {
     @Test
     fun `test submit feedback with missing channel id returns not found`() = testApplication {
         application {
-            module(TestDatabase.config())
+            module(TestDatabase.config(), testAuthConfig)
         }
 
         val client = createClient {
@@ -286,7 +404,7 @@ class FeedbackEndpointsTest {
     @Test
     fun `test submit feedback without comment`() = testApplication {
         application {
-            module(TestDatabase.config())
+            module(TestDatabase.config(), testAuthConfig)
         }
 
         val client = createClient {
@@ -305,6 +423,7 @@ class FeedbackEndpointsTest {
         )
 
         val createChannelResponse = client.post("/v1/feedback/channel") {
+            adminAuth()
             contentType(ContentType.Application.Json)
             setBody(channelCreationDto)
         }
@@ -313,6 +432,7 @@ class FeedbackEndpointsTest {
         val channelId = channel.channelId
 
         client.patch("/v1/feedback/channel/$channelId") {
+            adminAuth()
             contentType(ContentType.Application.Json)
             setBody(FeedbackChannelUpdateDTO(isOpen = true))
         }
@@ -340,7 +460,7 @@ class FeedbackEndpointsTest {
     @Test
     fun `test create multiple channels and verify unique external ids`() = testApplication {
         application {
-            module(TestDatabase.config())
+            module(TestDatabase.config(), testAuthConfig)
         }
 
         val client = createClient {
@@ -361,6 +481,7 @@ class FeedbackEndpointsTest {
             )
 
             val response = client.post("/v1/feedback/channel") {
+                adminAuth()
                 contentType(ContentType.Application.Json)
                 setBody(channelCreationDto)
             }
@@ -378,7 +499,7 @@ class FeedbackEndpointsTest {
     @Test
     fun `test feedback page returns HTML for valid channel`() = testApplication {
         application {
-            module(TestDatabase.config())
+            module(TestDatabase.config(), testAuthConfig)
         }
 
         val jsonClient = createClient {
@@ -388,6 +509,7 @@ class FeedbackEndpointsTest {
         }
 
         val channel = jsonClient.post("/v1/feedback/channel") {
+            adminAuth()
             contentType(ContentType.Application.Json)
             setBody(
                 FeedbackChannelCreationDTO(
@@ -418,7 +540,7 @@ class FeedbackEndpointsTest {
     @Test
     fun `test feedback page returns 404 for non-existent channel`() = testApplication {
         application {
-            module(TestDatabase.config())
+            module(TestDatabase.config(), testAuthConfig)
         }
 
         val response = client.get("/session/ZZZZ")
@@ -429,7 +551,7 @@ class FeedbackEndpointsTest {
     @Test
     fun `test session endpoint returns bad request for channel id longer than four characters`() = testApplication {
         application {
-            module(TestDatabase.config())
+            module(TestDatabase.config(), testAuthConfig)
         }
 
         val response = client.get("/session/ABCDE")
@@ -440,7 +562,7 @@ class FeedbackEndpointsTest {
     @Test
     fun `test session endpoint returns bad request for channel id shorter than four characters`() = testApplication {
         application {
-            module(TestDatabase.config())
+            module(TestDatabase.config(), testAuthConfig)
         }
 
         val response = client.get("/session/ABC")
@@ -451,7 +573,7 @@ class FeedbackEndpointsTest {
     @Test
     fun `test thank you page returns HTML fragment`() = testApplication {
         application {
-            module(TestDatabase.config())
+            module(TestDatabase.config(), testAuthConfig)
         }
 
         val response = client.get("/session/any-channel/thank-you")
@@ -468,7 +590,7 @@ class FeedbackEndpointsTest {
     @Test
     fun `test health endpoint returns ok when database is healthy`() = testApplication {
         application {
-            module(TestDatabase.config())
+            module(TestDatabase.config(), testAuthConfig)
         }
 
         val client = createClient {
@@ -488,7 +610,7 @@ class FeedbackEndpointsTest {
     @Test
     fun `test feedback page contains rating inputs for each category`() = testApplication {
         application {
-            module(TestDatabase.config())
+            module(TestDatabase.config(), testAuthConfig)
         }
 
         val jsonClient = createClient {
@@ -498,6 +620,7 @@ class FeedbackEndpointsTest {
         }
 
         val channel = jsonClient.post("/v1/feedback/channel") {
+            adminAuth()
             contentType(ContentType.Application.Json)
             setBody(
                 FeedbackChannelCreationDTO(

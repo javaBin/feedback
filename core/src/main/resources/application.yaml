@@ -12,3 +12,7 @@ database:
   name: ${DATABASE_NAME:feedback}
   username: ${DATABASE_USERNAME:feedback}
   password: ${DATABASE_PASSWORD:feedback}
+
+auth:
+  username: ${ADMIN_USERNAME:admin}
+  password: ${ADMIN_PASSWORD:admin}
