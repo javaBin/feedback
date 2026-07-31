@@ -8,4 +8,5 @@ interface FeedbackRepository {
     fun submitFeedback(feedback: Feedback, feedbackChannel: FeedbackChannel): Feedback
     fun findByChannelId(channelId: String): FeedbackChannel?
     fun findAllChannels(): List<FeedbackChannel>
+    fun updateChannel(channel: FeedbackChannel): FeedbackChannel?
 }

@@ -5,7 +5,8 @@ class FeedbackChannel(
     val title: String,
     val speakers: List<String>,
     val externalId: String,
-    val ratingCategories: List<FeedbackChannelRatingCategory>
+    val ratingCategories: List<FeedbackChannelRatingCategory>,
+    val isOpen: Boolean = false
 ) {
     init {
         require(speakers.all { it.isNotEmpty() }) { "All speakers must not be empty." }

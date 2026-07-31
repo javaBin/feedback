@@ -8,7 +8,8 @@ data class FeedbackChannelDTO(
     val title: String,
     val speakers: List<String>,
     val channelId: String,
-    val ratingCategories: List<FeedbackChannelRatingCategoryDTO>
+    val ratingCategories: List<FeedbackChannelRatingCategoryDTO>,
+    val isOpen: Boolean
 )
 
 fun FeedbackChannel.toDTO(): FeedbackChannelDTO {
@@ -21,6 +22,7 @@ fun FeedbackChannel.toDTO(): FeedbackChannelDTO {
                 title = it.name,
                 id = it.id,
             )
-        }
+        },
+        isOpen = isOpen
     )
 }

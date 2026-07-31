@@ -7,5 +7,6 @@ object FeedbackChannels : LongIdTable("feedback_channel") {
     val title = varchar("title", 255)
     val speakers = array<String>("speakers")
     val externalId = varchar("external_id", 255)
+    val isOpen = bool("is_open").default(false)
     val createdAt = timestamp("created_at")
 }
