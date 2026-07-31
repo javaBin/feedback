@@ -28,4 +28,18 @@ internal class FakeFeedbackRepository(
     override fun findAllChannels(): List<FeedbackChannel> {
         return channels.values.toList()
     }
+
+    override fun updateChannel(channel: FeedbackChannel): FeedbackChannel? {
+        val existing = channels[channel.externalId] ?: return null
+        val updated = FeedbackChannel(
+            id = existing.id,
+            title = channel.title,
+            speakers = channel.speakers,
+            externalId = existing.externalId,
+            ratingCategories = existing.ratingCategories,
+            isOpen = channel.isOpen
+        )
+        channels[channel.externalId] = updated
+        return updated
+    }
 }

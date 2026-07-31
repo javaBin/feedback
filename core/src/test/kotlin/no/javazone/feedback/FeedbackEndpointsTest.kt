@@ -3,8 +3,7 @@ package no.javazone.feedback
 import io.ktor.client.call.body
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
-import io.ktor.client.statement.*
-import io.ktor.http.*
+import io.ktor.client.statement.*import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.testing.*
 import kotlinx.serialization.json.Json
@@ -75,6 +74,131 @@ class FeedbackEndpointsTest {
     }
 
     @Test
+    fun `newly created channel is closed by default`() = testApplication {
+        application {
+            module(TestDatabase.config())
+        }
+
+        val client = createClient {
+            install(ContentNegotiation) {
+                json()
+            }
+        }
+
+        val channel = client.post("/v1/feedback/channel") {
+            contentType(ContentType.Application.Json)
+            setBody(
+                FeedbackChannelCreationDTO(
+                    title = "Closed by default",
+                    speakers = listOf("Speaker"),
+                    ratingCategories = listOf(FeedbackChannelRatingCategoryDTO(id = null, title = "Rating"))
+                )
+            )
+        }.body<FeedbackChannelDTO>()
+
+        assertEquals(false, channel.isOpen)
+    }
+
+    @Test
+    fun `submitting feedback to closed channel returns forbidden`() = testApplication {
+        application {
+            module(TestDatabase.config())
+        }
+
+        val client = createClient {
+            install(ContentNegotiation) {
+                json()
+            }
+        }
+
+        val channel = client.post("/v1/feedback/channel") {
+            contentType(ContentType.Application.Json)
+            setBody(
+                FeedbackChannelCreationDTO(
+                    title = "Closed",
+                    speakers = listOf("Speaker"),
+                    ratingCategories = listOf(FeedbackChannelRatingCategoryDTO(id = null, title = "Rating"))
+                )
+            )
+        }.body<FeedbackChannelDTO>()
+
+        val response = client.post("/v1/feedback/channel/${channel.channelId}/submit-feedback") {
+            contentType(ContentType.Application.Json)
+            setBody(
+                FeedbackCreationDTO(
+                    ratings = listOf(FeedbackRatingCreationDTO(id = channel.ratingCategories[0].id!!, score = 5)),
+                    detailedComment = null
+                )
+            )
+        }
+
+        assertEquals(HttpStatusCode.Forbidden, response.status)
+    }
+
+    @Test
+    fun `patch channel opens the channel and allows submissions`() = testApplication {
+        application {
+            module(TestDatabase.config())
+        }
+
+        val client = createClient {
+            install(ContentNegotiation) {
+                json()
+            }
+        }
+
+        val channel = client.post("/v1/feedback/channel") {
+            contentType(ContentType.Application.Json)
+            setBody(
+                FeedbackChannelCreationDTO(
+                    title = "Toggle me",
+                    speakers = listOf("Speaker"),
+                    ratingCategories = listOf(FeedbackChannelRatingCategoryDTO(id = null, title = "Rating"))
+                )
+            )
+        }.body<FeedbackChannelDTO>()
+
+        val patched = client.patch("/v1/feedback/channel/${channel.channelId}") {
+            contentType(ContentType.Application.Json)
+            setBody(FeedbackChannelUpdateDTO(isOpen = true))
+        }
+
+        assertEquals(HttpStatusCode.OK, patched.status)
+        assertEquals(true, patched.body<FeedbackChannelDTO>().isOpen)
+
+        val submit = client.post("/v1/feedback/channel/${channel.channelId}/submit-feedback") {
+            contentType(ContentType.Application.Json)
+            setBody(
+                FeedbackCreationDTO(
+                    ratings = listOf(FeedbackRatingCreationDTO(id = channel.ratingCategories[0].id!!, score = 5)),
+                    detailedComment = null
+                )
+            )
+        }
+        assertEquals(HttpStatusCode.OK, submit.status)
+    }
+
+    @Test
+    fun `patch channel returns not found for unknown channel`() = testApplication {
+        application {
+            module(TestDatabase.config())
+        }
+
+        val client = createClient {
+            install(ContentNegotiation) {
+                json()
+            }
+        }
+
+        val response = client.patch("/v1/feedback/channel/ZZZZ") {
+            contentType(ContentType.Application.Json)
+            setBody(FeedbackChannelUpdateDTO(isOpen = true))
+        }
+
+        assertEquals(HttpStatusCode.NotFound, response.status)
+    }
+
+    @Test
     fun `test submit feedback successfully`() = testApplication {
         application {
             module(TestDatabase.config())
@@ -102,6 +226,11 @@ class FeedbackEndpointsTest {
         }.body<FeedbackChannelDTO>()
 
         val channelId = channel.channelId
+
+        client.patch("/v1/feedback/channel/$channelId") {
+            contentType(ContentType.Application.Json)
+            setBody(FeedbackChannelUpdateDTO(isOpen = true))
+        }
 
         // Now submit feedback
         val feedbackCreationDto = FeedbackCreationDTO(
@@ -182,6 +311,11 @@ class FeedbackEndpointsTest {
 
         val channel = createChannelResponse.body<FeedbackChannelDTO>()
         val channelId = channel.channelId
+
+        client.patch("/v1/feedback/channel/$channelId") {
+            contentType(ContentType.Application.Json)
+            setBody(FeedbackChannelUpdateDTO(isOpen = true))
+        }
 
         // Submit feedback without comment
         val feedbackCreationDto = FeedbackCreationDTO(

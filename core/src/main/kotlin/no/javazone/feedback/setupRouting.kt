@@ -9,12 +9,15 @@ import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.response.respondOutputStream
 import io.ktor.server.routing.get
+import io.ktor.server.routing.patch
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import no.javazone.feedback.database.isDatabaseHealthy
 import no.javazone.feedback.database.repository.FeedbackRepositoryDb
 import no.javazone.feedback.domain.adapters.FeedbackAdapter
+import no.javazone.feedback.domain.FeedbackChannel
+import no.javazone.feedback.domain.errors.ChannelClosedError
 import no.javazone.feedback.domain.errors.ChannelNotFoundError
 import no.javazone.feedback.domain.generators.ExternalIdGeneratorDefault
 import no.javazone.feedback.pages.feedbackPage
@@ -23,6 +26,7 @@ import no.javazone.feedback.pages.thankYouFragment
 import no.javazone.feedback.qrcode.QRCodeGenerator
 import no.javazone.feedback.request.channel.FeedbackChannelCreationDTO
 import no.javazone.feedback.request.channel.FeedbackChannelRatingCategoryDTO
+import no.javazone.feedback.request.channel.FeedbackChannelUpdateDTO
 import no.javazone.feedback.request.channel.FeedbackCreationDTO
 import no.javazone.feedback.request.channel.FeedbackDTO
 import no.javazone.feedback.request.channel.FeedbackRatingDTO
@@ -99,6 +103,11 @@ fun Application.setupRouting() {
                             HttpStatusCode.NotFound,
                             e.message
                         )
+                    } catch (e: ChannelClosedError) {
+                        return@post call.respond(
+                            HttpStatusCode.Forbidden,
+                            e.message
+                        )
                     }
 
                     val feedbackDto = createdFeedback.let { feedbackWithComment ->
@@ -124,6 +133,30 @@ fun Application.setupRouting() {
                     }
 
                     call.respond(feedbackDto)
+                }
+
+                patch("{channelId}") {
+                    val channelId = call.parameters["channelId"] ?: return@patch call.respond(
+                        HttpStatusCode.NotFound,
+                        "Missing externalId"
+                    )
+                    val updateInput = call.receive<FeedbackChannelUpdateDTO>()
+                    val existing = feedbackAdapter.findChannel(channelId)
+                        ?: return@patch call.respond(HttpStatusCode.NotFound, "Channel with id $channelId not found.")
+                    val merged = FeedbackChannel(
+                        id = existing.id,
+                        title = existing.title,
+                        speakers = existing.speakers,
+                        externalId = existing.externalId,
+                        ratingCategories = existing.ratingCategories,
+                        isOpen = updateInput.isOpen ?: existing.isOpen
+                    )
+                    val updated = try {
+                        feedbackAdapter.updateChannel(merged)
+                    } catch (e: ChannelNotFoundError) {
+                        return@patch call.respond(HttpStatusCode.NotFound, e.message)
+                    }
+                    call.respond(updated.toDTO())
                 }
 
                 get("{channelId}/qrcode") {

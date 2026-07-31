@@ -16,6 +16,7 @@ import org.jetbrains.exposed.sql.batchInsert
 import org.jetbrains.exposed.sql.insertReturning
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.sql.update
 import org.postgresql.util.PSQLState
 import java.time.Instant
 
@@ -27,6 +28,7 @@ object FeedbackRepositoryDb : FeedbackRepository {
                     it[title] = channel.title
                     it[speakers] = channel.speakers
                     it[externalId] = channel.externalId
+                    it[isOpen] = channel.isOpen
                 }.map {
                     it[FeedbackChannels.id]
                 }.first()
@@ -50,7 +52,8 @@ object FeedbackRepositoryDb : FeedbackRepository {
                         title = it[FeedbackChannels.title],
                         speakers = it[FeedbackChannels.speakers],
                         externalId = it[FeedbackChannels.externalId],
-                        ratingCategories = ratingCategories
+                        ratingCategories = ratingCategories,
+                        isOpen = it[FeedbackChannels.isOpen]
                     )
                 }.first()
             }
@@ -106,7 +109,8 @@ object FeedbackRepositoryDb : FeedbackRepository {
                         title = firstRow[FeedbackChannels.title],
                         speakers = firstRow[FeedbackChannels.speakers],
                         externalId = firstRow[FeedbackChannels.externalId],
-                        ratingCategories = emptyList()
+                        ratingCategories = emptyList(),
+                        isOpen = firstRow[FeedbackChannels.isOpen]
                     )
                 }
         }
@@ -138,9 +142,21 @@ object FeedbackRepositoryDb : FeedbackRepository {
                     title = firstRow[FeedbackChannels.title],
                     speakers = firstRow[FeedbackChannels.speakers],
                     externalId = firstRow[FeedbackChannels.externalId],
-                    ratingCategories = ratingCategories
+                    ratingCategories = ratingCategories,
+                    isOpen = firstRow[FeedbackChannels.isOpen]
                 )
             }
+        }
+    }
+
+    override fun updateChannel(channel: FeedbackChannel): FeedbackChannel? {
+        return transaction {
+            val updated = FeedbackChannels.update({ FeedbackChannels.id eq channel.id }) {
+                it[title] = channel.title
+                it[speakers] = channel.speakers
+                it[isOpen] = channel.isOpen
+            }
+            if (updated == 0) null else findByChannelId(channel.externalId)
         }
     }
 }
