@@ -16,3 +16,6 @@ class ExternalIdAlreadyExistsError(externalId: String, cause: Throwable? = null)
 
 class ExternalIdGenerationException :
     DomainErrors("Failed to generate a unique external id after multiple attempts.")
+
+class FeedbackNotFoundError(feedbackId: Long) :
+    DomainErrors("Feedback with id $feedbackId not found.")

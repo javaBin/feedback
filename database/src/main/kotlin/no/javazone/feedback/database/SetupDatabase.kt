@@ -10,13 +10,9 @@ import org.jetbrains.exposed.sql.Database
 import kotlin.String
 import kotlin.use
 
-private var currentDataSource: HikariDataSource? = null
-
 fun setupDatabase(
     databaseConfig: FeedbackDatabaseConfig
 ) {
-    if (currentDataSource != null) return
-
     val connectionPoolConfig = HikariConfig().apply {
         jdbcUrl = "jdbc:postgresql://${databaseConfig.host}:${databaseConfig.port}/${databaseConfig.databaseName}"
         username = databaseConfig.username
@@ -25,7 +21,6 @@ fun setupDatabase(
         maximumPoolSize = 10
     }
     val dataSource = HikariDataSource(connectionPoolConfig)
-    currentDataSource = dataSource
     Database.connect(dataSource)
 
     dataSource.connection.use {

@@ -7,6 +7,7 @@ import no.javazone.feedback.database.repository.FeedbackRepositoryDb
 import no.javazone.feedback.domain.adapters.FeedbackAdapter
 import no.javazone.feedback.domain.generators.ExternalIdGeneratorDefault
 import no.javazone.feedback.qrcode.QRCodeGenerator
+import no.javazone.feedback.routes.adminRoutes
 import no.javazone.feedback.routes.feedbackChannelRoutes
 import no.javazone.feedback.routes.healthRoutes
 import no.javazone.feedback.routes.landingRoutes
@@ -27,5 +28,6 @@ fun Application.setupRouting() {
         healthRoutes()
         sessionRoutes(feedbackAdapter)
         feedbackChannelRoutes(feedbackAdapter, qrCodeGenerator)
+        adminRoutes(feedbackAdapter)
     }
 }

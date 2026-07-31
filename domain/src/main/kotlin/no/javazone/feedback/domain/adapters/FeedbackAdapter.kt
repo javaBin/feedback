@@ -8,6 +8,7 @@ import no.javazone.feedback.domain.errors.ChannelClosedError
 import no.javazone.feedback.domain.errors.ChannelNotFoundError
 import no.javazone.feedback.domain.errors.ExternalIdAlreadyExistsError
 import no.javazone.feedback.domain.errors.ExternalIdGenerationException
+import no.javazone.feedback.domain.errors.FeedbackNotFoundError
 import no.javazone.feedback.domain.generators.ExternalIdGenerator
 import no.javazone.feedback.domain.persistence.FeedbackRepository
 
@@ -65,6 +66,27 @@ class FeedbackAdapter(
     fun generateQrCode(channelId: String, qrCodeGenerator: (FeedbackChannel) -> ByteArray): ByteArray? {
         return repository.findByChannelId(channelId)?.let {
             qrCodeGenerator(it)
+        }
+    }
+
+    fun findFeedbacksForChannel(channelId: String): List<Feedback> {
+        val channel = repository.findByChannelId(channelId)
+            ?: throw ChannelNotFoundError(channelId)
+        return repository.findFeedbacksByChannelId(channel.id)
+    }
+
+    fun findFeedback(feedbackId: Long): Feedback? {
+        return repository.findFeedbackById(feedbackId)
+    }
+
+    fun updateFeedback(feedbackId: Long, comment: String?, ratings: Map<Long, Int>): Feedback {
+        return repository.updateFeedback(feedbackId, comment, ratings)
+            ?: throw FeedbackNotFoundError(feedbackId)
+    }
+
+    fun deleteFeedback(feedbackId: Long) {
+        if (!repository.deleteFeedback(feedbackId)) {
+            throw FeedbackNotFoundError(feedbackId)
         }
     }
 }

@@ -12,7 +12,11 @@ import no.javazone.feedback.domain.errors.ExternalIdAlreadyExistsError
 import no.javazone.feedback.domain.persistence.FeedbackRepository
 import org.jetbrains.exposed.exceptions.ExposedSQLException
 import org.jetbrains.exposed.sql.JoinType
+import org.jetbrains.exposed.sql.SortOrder
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.batchInsert
+import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insertReturning
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -157,6 +161,96 @@ object FeedbackRepositoryDb : FeedbackRepository {
                 it[isOpen] = channel.isOpen
             }
             if (updated == 0) null else findByChannelId(channel.externalId)
+        }
+    }
+
+    override fun findFeedbacksByChannelId(channelId: Long): List<Feedback> {
+        return transaction {
+            val rows = Feedbacks
+                .join(FeedbackRatings, JoinType.LEFT) { Feedbacks.id eq FeedbackRatings.feedbackId }
+                .join(RatingTypes, JoinType.LEFT) { FeedbackRatings.ratingTypeId eq RatingTypes.id }
+                .selectAll()
+                .where { Feedbacks.channelId eq channelId }
+                .orderBy(Feedbacks.createdAt to SortOrder.DESC)
+                .toList()
+
+            rows.groupBy { it[Feedbacks.id].value }
+                .map { (feedbackId, group) ->
+                    val first = group.first()
+                    val ratings = group
+                        .filter { it.getOrNull(FeedbackRatings.id) != null }
+                        .map {
+                            FeedbackRating(
+                                id = it[FeedbackRatings.id].value,
+                                name = it[RatingTypes.ratingName],
+                                typeId = it[FeedbackRatings.ratingTypeId],
+                                value = it[FeedbackRatings.ratingValue],
+                            )
+                        }
+                    Feedback(
+                        id = feedbackId,
+                        comment = first[Feedbacks.detailedComment],
+                        ratings = ratings,
+                    )
+                }
+        }
+    }
+
+    override fun findFeedbackById(feedbackId: Long): Feedback? {
+        return transaction {
+            val rows = Feedbacks
+                .join(FeedbackRatings, JoinType.LEFT) { Feedbacks.id eq FeedbackRatings.feedbackId }
+                .join(RatingTypes, JoinType.LEFT) { FeedbackRatings.ratingTypeId eq RatingTypes.id }
+                .selectAll()
+                .where { Feedbacks.id eq feedbackId }
+                .toList()
+
+            if (rows.isEmpty()) {
+                null
+            } else {
+                val first = rows.first()
+                val ratings = rows
+                    .filter { it.getOrNull(FeedbackRatings.id) != null }
+                    .map {
+                        FeedbackRating(
+                            id = it[FeedbackRatings.id].value,
+                            name = it[RatingTypes.ratingName],
+                            typeId = it[FeedbackRatings.ratingTypeId],
+                            value = it[FeedbackRatings.ratingValue],
+                        )
+                    }
+                Feedback(
+                    id = first[Feedbacks.id].value,
+                    comment = first[Feedbacks.detailedComment],
+                    ratings = ratings,
+                )
+            }
+        }
+    }
+
+    override fun updateFeedback(feedbackId: Long, comment: String?, ratings: Map<Long, Int>): Feedback? {
+        return transaction {
+            val updated = Feedbacks.update({ Feedbacks.id eq feedbackId }) {
+                it[detailedComment] = comment
+            }
+            if (updated == 0) {
+                return@transaction null
+            }
+            ratings.forEach { (ratingId, newValue) ->
+                FeedbackRatings.update({
+                    (FeedbackRatings.id eq ratingId) and (FeedbackRatings.feedbackId eq feedbackId)
+                }) {
+                    it[ratingValue] = newValue
+                }
+            }
+            findFeedbackById(feedbackId)
+        }
+    }
+
+    override fun deleteFeedback(feedbackId: Long): Boolean {
+        return transaction {
+            FeedbackRatings.deleteWhere { FeedbackRatings.feedbackId eq feedbackId }
+            Feedbacks.deleteWhere { Feedbacks.id eq feedbackId } > 0
         }
     }
 }

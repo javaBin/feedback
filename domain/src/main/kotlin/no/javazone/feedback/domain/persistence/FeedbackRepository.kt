@@ -9,4 +9,8 @@ interface FeedbackRepository {
     fun findByChannelId(channelId: String): FeedbackChannel?
     fun findAllChannels(): List<FeedbackChannel>
     fun updateChannel(channel: FeedbackChannel): FeedbackChannel?
+    fun findFeedbacksByChannelId(channelId: Long): List<Feedback>
+    fun findFeedbackById(feedbackId: Long): Feedback?
+    fun updateFeedback(feedbackId: Long, comment: String?, ratings: Map<Long, Int>): Feedback?
+    fun deleteFeedback(feedbackId: Long): Boolean
 }

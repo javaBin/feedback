@@ -206,6 +206,111 @@ button[type="submit"]:disabled {
     font-size: 0.95rem;
 }
 
+/* Admin moderation page */
+
+.admin-page {
+    max-width: 720px;
+}
+
+.admin-header {
+    margin-bottom: 1.5rem;
+}
+
+.admin-header h1 {
+    font-size: 1.75rem;
+    margin-bottom: 0.25rem;
+}
+
+.channel-status {
+    color: #666;
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+}
+
+.status-open {
+    color: #16a34a;
+    font-weight: 600;
+}
+
+.status-closed {
+    color: #dc2626;
+    font-weight: 600;
+}
+
+.feedback-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.feedback-row {
+    padding: 1.25rem;
+}
+
+.feedback-row fieldset.rating-group {
+    margin-bottom: 1rem;
+}
+
+.feedback-row fieldset.rating-group legend {
+    font-size: 0.85rem;
+}
+
+.feedback-row .rating-buttons label {
+    padding: 0.4rem 0;
+    font-size: 0.85rem;
+}
+
+.feedback-row .comment-group {
+    margin-bottom: 1rem;
+}
+
+.feedback-row .comment-group textarea {
+    font-size: 0.9rem;
+}
+
+.feedback-actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.save-btn {
+    width: auto;
+    padding: 0.5rem 1.25rem;
+    background: #2563eb;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.save-btn:hover {
+    background: #1d4ed8;
+}
+
+.feedback-delete-form {
+    margin-top: 0.5rem;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.delete-btn {
+    background: transparent;
+    color: #dc2626;
+    border: 1px solid #dc2626;
+    border-radius: 6px;
+    padding: 0.4rem 1rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.delete-btn:hover {
+    background: #dc2626;
+    color: #fff;
+}
+
 /* Landing page */
 
 .landing {

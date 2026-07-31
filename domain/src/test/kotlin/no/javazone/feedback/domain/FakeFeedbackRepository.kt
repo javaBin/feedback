@@ -42,4 +42,12 @@ internal class FakeFeedbackRepository(
         channels[channel.externalId] = updated
         return updated
     }
+
+    override fun findFeedbacksByChannelId(channelId: Long): List<Feedback> = emptyList()
+
+    override fun findFeedbackById(feedbackId: Long): Feedback? = null
+
+    override fun updateFeedback(feedbackId: Long, comment: String?, ratings: Map<Long, Int>): Feedback? = null
+
+    override fun deleteFeedback(feedbackId: Long): Boolean = false
 }
