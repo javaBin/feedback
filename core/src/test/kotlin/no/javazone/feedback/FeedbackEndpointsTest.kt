@@ -733,4 +733,113 @@ class FeedbackEndpointsTest {
         assertTrue(body.contains("detailed-comment"))
         assertTrue(body.contains("submit-btn"))
     }
+
+    @Test
+    fun `qrcode endpoint returns not found for unknown channel`() = testApplication {
+        application {
+            module(TestDatabase.config(), testAuthConfig)
+        }
+
+        val response = client.get("/v1/feedback/channel/ZZZZ/qrcode")
+        assertEquals(HttpStatusCode.NotFound, response.status)
+    }
+
+    @Test
+    fun `patch channel with wrong credentials returns unauthorized`() = testApplication {
+        application {
+            module(TestDatabase.config(), testAuthConfig)
+        }
+
+        val response = client.patch("/v1/feedback/channel/ABCD") {
+            adminAuth(user = "wrong", password = "wrong")
+            contentType(ContentType.Application.Json)
+            setBody("""{"isOpen": true}""")
+        }
+        assertEquals(HttpStatusCode.Unauthorized, response.status)
+    }
+
+    @Test
+    fun `patch channel with empty body leaves isOpen unchanged`() = testApplication {
+        application {
+            module(TestDatabase.config(), testAuthConfig)
+        }
+
+        val jsonClient = createClient {
+            install(ContentNegotiation) { json() }
+        }
+
+        val channel = jsonClient.post("/v1/feedback/channel") {
+            adminAuth()
+            contentType(ContentType.Application.Json)
+            setBody(
+                FeedbackChannelCreationDTO(
+                    title = "Untouched",
+                    speakers = listOf("Speaker"),
+                    ratingCategories = listOf(FeedbackChannelRatingCategoryDTO(id = null, title = "Rating"))
+                )
+            )
+        }.body<FeedbackChannelDTO>()
+
+        // Open the channel first
+        jsonClient.patch("/v1/feedback/channel/${channel.channelId}") {
+            adminAuth()
+            contentType(ContentType.Application.Json)
+            setBody(FeedbackChannelUpdateDTO(isOpen = true))
+        }
+
+        // Send an empty update body
+        val patched = jsonClient.patch("/v1/feedback/channel/${channel.channelId}") {
+            adminAuth()
+            contentType(ContentType.Application.Json)
+            setBody(FeedbackChannelUpdateDTO(isOpen = null))
+        }
+        assertEquals(HttpStatusCode.OK, patched.status)
+        assertEquals(true, patched.body<FeedbackChannelDTO>().isOpen)
+    }
+
+    @Test
+    fun `landing page returns HTML and lists created channels`() = testApplication {
+        application {
+            module(TestDatabase.config(), testAuthConfig)
+        }
+
+        val jsonClient = createClient {
+            install(ContentNegotiation) { json() }
+        }
+
+        jsonClient.post("/v1/feedback/channel") {
+            adminAuth()
+            contentType(ContentType.Application.Json)
+            setBody(
+                FeedbackChannelCreationDTO(
+                    title = "Landing showcase",
+                    speakers = listOf("Alice"),
+                    ratingCategories = listOf(FeedbackChannelRatingCategoryDTO(id = null, title = "Rating"))
+                )
+            )
+        }
+
+        val response = client.get("/")
+
+        assertEquals(HttpStatusCode.OK, response.status)
+        assertEquals(ContentType.Text.Html.withCharset(Charsets.UTF_8), response.contentType())
+
+        val body = response.bodyAsText()
+        assertTrue(body.contains("Feedback Channels"))
+        assertTrue(body.contains("Landing showcase"))
+        assertTrue(body.contains("Alice"))
+    }
+
+    @Test
+    fun `landing page shows empty state when no channels exist`() = testApplication {
+        application {
+            module(TestDatabase.config(), testAuthConfig)
+        }
+
+        val response = client.get("/")
+
+        assertEquals(HttpStatusCode.OK, response.status)
+        val body = response.bodyAsText()
+        assertTrue(body.contains("No feedback channels have been created yet."))
+    }
 }
