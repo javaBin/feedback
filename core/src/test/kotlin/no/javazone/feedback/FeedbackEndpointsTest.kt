@@ -523,6 +523,12 @@ class FeedbackEndpointsTest {
             )
         }.body<FeedbackChannelDTO>()
 
+        jsonClient.patch("/v1/feedback/channel/${channel.channelId}") {
+            adminAuth()
+            contentType(ContentType.Application.Json)
+            setBody(FeedbackChannelUpdateDTO(isOpen = true))
+        }
+
         val response = client.get("/session/${channel.channelId}")
 
         assertEquals(HttpStatusCode.OK, response.status)
@@ -568,6 +574,78 @@ class FeedbackEndpointsTest {
         val response = client.get("/session/ABC")
 
         assertEquals(HttpStatusCode.BadRequest, response.status)
+    }
+
+    @Test
+    fun `feedback page shows closed notice when channel is not open`() = testApplication {
+        application {
+            module(TestDatabase.config(), testAuthConfig)
+        }
+
+        val jsonClient = createClient {
+            install(ContentNegotiation) {
+                json()
+            }
+        }
+
+        val channel = jsonClient.post("/v1/feedback/channel") {
+            adminAuth()
+            contentType(ContentType.Application.Json)
+            setBody(
+                FeedbackChannelCreationDTO(
+                    title = "Not yet open",
+                    speakers = listOf("Speaker"),
+                    ratingCategories = listOf(FeedbackChannelRatingCategoryDTO(id = null, title = "Rating"))
+                )
+            )
+        }.body<FeedbackChannelDTO>()
+
+        val response = client.get("/session/${channel.channelId}")
+
+        assertEquals(HttpStatusCode.OK, response.status)
+        val body = response.bodyAsText()
+        assertTrue(body.contains("Feedback is not open yet"))
+        assertTrue(body.contains("Please check again closer to when the session starts"))
+        assertTrue(!body.contains("feedback-form"))
+        assertTrue(!body.contains("submit-btn"))
+        assertTrue(!body.contains("/static/js/feedback.js"))
+    }
+
+    @Test
+    fun `feedback page shows form after channel is opened`() = testApplication {
+        application {
+            module(TestDatabase.config(), testAuthConfig)
+        }
+
+        val jsonClient = createClient {
+            install(ContentNegotiation) {
+                json()
+            }
+        }
+
+        val channel = jsonClient.post("/v1/feedback/channel") {
+            adminAuth()
+            contentType(ContentType.Application.Json)
+            setBody(
+                FeedbackChannelCreationDTO(
+                    title = "Opened",
+                    speakers = listOf("Speaker"),
+                    ratingCategories = listOf(FeedbackChannelRatingCategoryDTO(id = null, title = "Rating"))
+                )
+            )
+        }.body<FeedbackChannelDTO>()
+
+        jsonClient.patch("/v1/feedback/channel/${channel.channelId}") {
+            adminAuth()
+            contentType(ContentType.Application.Json)
+            setBody(FeedbackChannelUpdateDTO(isOpen = true))
+        }
+
+        val body = client.get("/session/${channel.channelId}").bodyAsText()
+
+        assertTrue(body.contains("feedback-form"))
+        assertTrue(body.contains("submit-btn"))
+        assertTrue(!body.contains("Feedback is not open yet"))
     }
 
     @Test
@@ -634,6 +712,12 @@ class FeedbackEndpointsTest {
                 )
             )
         }.body<FeedbackChannelDTO>()
+
+        jsonClient.patch("/v1/feedback/channel/${channel.channelId}") {
+            adminAuth()
+            contentType(ContentType.Application.Json)
+            setBody(FeedbackChannelUpdateDTO(isOpen = true))
+        }
 
         val body = client.get("/session/${channel.channelId}").bodyAsText()
 

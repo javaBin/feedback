@@ -71,57 +71,66 @@ fun HTML.feedbackPage(channel: FeedbackChannel) {
                     +channel.speakers.joinToString(", ")
                 }
 
-                form {
-                    id = "feedback-form"
-                    attributes["data-channel-id"] = channel.externalId
+                if (!channel.isOpen) {
+                    div("channel-closed-notice") {
+                        h2 { +"Feedback is not open yet" }
+                        p { +"Please check again closer to when the session starts" }
+                    }
+                } else {
+                    form {
+                        id = "feedback-form"
+                        attributes["data-channel-id"] = channel.externalId
 
-                    channel.ratingCategories.forEach { category ->
-                        fieldSet("rating-group") {
-                            legend { +category.name }
-                            div("rating-buttons") {
-                                for (score in 1..5) {
-                                    input(InputType.radio) {
-                                        name = "rating-${category.id}"
-                                        value = "$score"
-                                        id = "rating-${category.id}-$score"
-                                        required = true
-                                    }
-                                    label {
-                                        htmlFor = "rating-${category.id}-$score"
-                                        +"$score"
+                        channel.ratingCategories.forEach { category ->
+                            fieldSet("rating-group") {
+                                legend { +category.name }
+                                div("rating-buttons") {
+                                    for (score in 1..5) {
+                                        input(InputType.radio) {
+                                            name = "rating-${category.id}"
+                                            value = "$score"
+                                            id = "rating-${category.id}-$score"
+                                            required = true
+                                        }
+                                        label {
+                                            htmlFor = "rating-${category.id}-$score"
+                                            +"$score"
+                                        }
                                     }
                                 }
                             }
                         }
-                    }
 
-                    div("comment-group") {
-                        label {
-                            htmlFor = "detailed-comment"
-                            +"Comments (optional)"
+                        div("comment-group") {
+                            label {
+                                htmlFor = "detailed-comment"
+                                +"Comments (optional)"
+                            }
+                            textArea {
+                                id = "detailed-comment"
+                                name = "detailedComment"
+                                rows = "4"
+                                placeholder = "Share your thoughts..."
+                            }
                         }
-                        textArea {
-                            id = "detailed-comment"
-                            name = "detailedComment"
-                            rows = "4"
-                            placeholder = "Share your thoughts..."
+
+                        button(type = ButtonType.submit) {
+                            id = "submit-btn"
+                            +"Submit Feedback"
                         }
-                    }
 
-                    button(type = ButtonType.submit) {
-                        id = "submit-btn"
-                        +"Submit Feedback"
-                    }
-
-                    p("error-message") {
-                        id = "error-message"
-                        attributes["aria-live"] = "polite"
+                        p("error-message") {
+                            id = "error-message"
+                            attributes["aria-live"] = "polite"
+                        }
                     }
                 }
             }
         }
 
-        script { src = "/static/js/feedback.js" }
+        if (channel.isOpen) {
+            script { src = "/static/js/feedback.js" }
+        }
     }
 }
 
