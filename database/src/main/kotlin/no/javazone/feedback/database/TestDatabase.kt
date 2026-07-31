@@ -13,10 +13,12 @@ object TestDatabase {
 
     fun start() {
         container.start()
+        setupDatabase(config())
     }
 
     fun stop() {
         container.stop()
+        resetDatasource()
     }
 
     fun config(): FeedbackDatabaseConfig {

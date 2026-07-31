@@ -1,16 +1,14 @@
 package no.javazone.feedback
 
-import io.ktor.client.call.body
+import io.ktor.client.call.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
-import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.testing.*
 import kotlinx.serialization.json.Json
 import no.javazone.feedback.database.TestDatabase
-import no.javazone.feedback.database.setupDatabase
 import no.javazone.feedback.request.channel.*
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -18,7 +16,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import java.util.Base64
+import java.util.*
 
 class FeedbackEndpointsTest {
     companion object {
@@ -30,7 +28,6 @@ class FeedbackEndpointsTest {
         @JvmStatic
         fun setup() {
             TestDatabase.start()
-            setupDatabase(TestDatabase.config())
         }
 
         @AfterAll
