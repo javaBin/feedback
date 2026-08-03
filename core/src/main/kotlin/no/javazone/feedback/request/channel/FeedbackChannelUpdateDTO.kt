@@ -4,5 +4,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class FeedbackChannelUpdateDTO(
-    val isOpen: Boolean? = null
+    val isOpen: Boolean? = null,
+    val opensAt: String? = null,
+    val closesAt: String? = null,
 )

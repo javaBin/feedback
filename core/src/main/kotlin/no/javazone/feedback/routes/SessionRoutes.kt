@@ -9,8 +9,9 @@ import io.ktor.server.routing.route
 import no.javazone.feedback.domain.adapters.FeedbackAdapter
 import no.javazone.feedback.pages.feedbackPage
 import no.javazone.feedback.pages.thankYouFragment
+import java.time.Clock
 
-fun Route.sessionRoutes(feedbackAdapter: FeedbackAdapter) {
+fun Route.sessionRoutes(feedbackAdapter: FeedbackAdapter, clock: Clock) {
     route("session") {
         get("/{channelId}") {
             val channelId = call.parameters["channelId"]
@@ -20,7 +21,7 @@ fun Route.sessionRoutes(feedbackAdapter: FeedbackAdapter) {
             }
             val channel = feedbackAdapter.findChannel(channelId)
                 ?: return@get call.respond(HttpStatusCode.NotFound, "Channel not found")
-            call.respondHtml { feedbackPage(channel) }
+            call.respondHtml { feedbackPage(channel = channel, now = clock.instant()) }
         }
 
         get("/{channelId}/thank-you") {

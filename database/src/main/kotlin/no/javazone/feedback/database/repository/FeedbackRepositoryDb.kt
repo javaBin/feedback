@@ -23,6 +23,11 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.update
 import org.postgresql.util.PSQLState
 import java.time.Instant
+import java.time.OffsetDateTime
+import java.time.ZoneOffset
+
+private fun Instant?.toOffset(): OffsetDateTime? = this?.atOffset(ZoneOffset.UTC)
+private fun OffsetDateTime?.toInstantOrNull(): Instant? = this?.toInstant()
 
 object FeedbackRepositoryDb : FeedbackRepository {
     override fun intializeChannel(channel: FeedbackChannel): FeedbackChannel {
@@ -33,6 +38,8 @@ object FeedbackRepositoryDb : FeedbackRepository {
                     it[speakers] = channel.speakers
                     it[externalId] = channel.externalId
                     it[isOpen] = channel.isOpen
+                    it[opensAt] = channel.opensAt.toOffset()
+                    it[closesAt] = channel.closesAt.toOffset()
                 }.map {
                     it[FeedbackChannels.id]
                 }.first()
@@ -57,7 +64,9 @@ object FeedbackRepositoryDb : FeedbackRepository {
                         speakers = it[FeedbackChannels.speakers],
                         externalId = it[FeedbackChannels.externalId],
                         ratingCategories = ratingCategories,
-                        isOpen = it[FeedbackChannels.isOpen]
+                        isOpen = it[FeedbackChannels.isOpen],
+                        opensAt = it[FeedbackChannels.opensAt].toInstantOrNull(),
+                        closesAt = it[FeedbackChannels.closesAt].toInstantOrNull(),
                     )
                 }.first()
             }
@@ -114,7 +123,9 @@ object FeedbackRepositoryDb : FeedbackRepository {
                         speakers = firstRow[FeedbackChannels.speakers],
                         externalId = firstRow[FeedbackChannels.externalId],
                         ratingCategories = emptyList(),
-                        isOpen = firstRow[FeedbackChannels.isOpen]
+                        isOpen = firstRow[FeedbackChannels.isOpen],
+                        opensAt = firstRow[FeedbackChannels.opensAt].toInstantOrNull(),
+                        closesAt = firstRow[FeedbackChannels.closesAt].toInstantOrNull(),
                     )
                 }
         }
@@ -147,7 +158,9 @@ object FeedbackRepositoryDb : FeedbackRepository {
                     speakers = firstRow[FeedbackChannels.speakers],
                     externalId = firstRow[FeedbackChannels.externalId],
                     ratingCategories = ratingCategories,
-                    isOpen = firstRow[FeedbackChannels.isOpen]
+                    isOpen = firstRow[FeedbackChannels.isOpen],
+                    opensAt = firstRow[FeedbackChannels.opensAt].toInstantOrNull(),
+                    closesAt = firstRow[FeedbackChannels.closesAt].toInstantOrNull(),
                 )
             }
         }
@@ -159,6 +172,8 @@ object FeedbackRepositoryDb : FeedbackRepository {
                 it[title] = channel.title
                 it[speakers] = channel.speakers
                 it[isOpen] = channel.isOpen
+                it[opensAt] = channel.opensAt.toOffset()
+                it[closesAt] = channel.closesAt.toOffset()
             }
             if (updated == 0) null else findByChannelId(channel.externalId)
         }

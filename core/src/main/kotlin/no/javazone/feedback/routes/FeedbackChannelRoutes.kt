@@ -23,10 +23,13 @@ import no.javazone.feedback.request.channel.FeedbackCreationDTO
 import no.javazone.feedback.request.channel.FeedbackDTO
 import no.javazone.feedback.request.channel.FeedbackRatingDTO
 import no.javazone.feedback.request.channel.toDTO
+import java.time.Clock
+import java.time.Instant
 
 fun Route.feedbackChannelRoutes(
     feedbackAdapter: FeedbackAdapter,
     qrCodeGenerator: QRCodeGenerator,
+    clock: Clock,
 ) {
     route("/v1/feedback/channel") {
         // Public routes
@@ -42,6 +45,7 @@ fun Route.feedbackChannelRoutes(
                 feedbackAdapter.submitFeedback(
                     channelId = channelId,
                     feedback = feedbackInput.toDomain(),
+                    now = clock.instant(),
                 )
             } catch (e: ChannelNotFoundError) {
                 return@post call.respond(HttpStatusCode.NotFound, e.message)
@@ -116,6 +120,16 @@ fun Route.feedbackChannelRoutes(
                 val updateInput = call.receive<FeedbackChannelUpdateDTO>()
                 val existing = feedbackAdapter.findChannel(channelId)
                     ?: return@patch call.respond(HttpStatusCode.NotFound, "Channel with id $channelId not found.")
+                val newOpensAt = when (val v = updateInput.opensAt) {
+                    null -> existing.opensAt
+                    "" -> null
+                    else -> Instant.parse(v)
+                }
+                val newClosesAt = when (val v = updateInput.closesAt) {
+                    null -> existing.closesAt
+                    "" -> null
+                    else -> Instant.parse(v)
+                }
                 val merged = FeedbackChannel(
                     id = existing.id,
                     title = existing.title,
@@ -123,6 +137,8 @@ fun Route.feedbackChannelRoutes(
                     externalId = existing.externalId,
                     ratingCategories = existing.ratingCategories,
                     isOpen = updateInput.isOpen ?: existing.isOpen,
+                    opensAt = newOpensAt,
+                    closesAt = newClosesAt,
                 )
                 val updated = try {
                     feedbackAdapter.updateChannel(merged)

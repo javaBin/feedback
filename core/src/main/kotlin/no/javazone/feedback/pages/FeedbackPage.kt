@@ -2,6 +2,16 @@ package no.javazone.feedback.pages
 
 import kotlinx.html.*
 import no.javazone.feedback.domain.FeedbackChannel
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.util.Locale
+
+private val OSLO: ZoneId = ZoneId.of("Europe/Oslo")
+private val DISPLAY_FORMAT: DateTimeFormatter =
+    DateTimeFormatter.ofPattern("EEE d MMM, HH:mm", Locale.forLanguageTag("no")).withZone(OSLO)
+
+private fun Instant.formatOslo(): String = DISPLAY_FORMAT.format(this)
 
 fun HTML.landingPage(channels: List<FeedbackChannel>) {
     head {
@@ -49,7 +59,8 @@ fun HTML.landingPage(channels: List<FeedbackChannel>) {
     }
 }
 
-fun HTML.feedbackPage(channel: FeedbackChannel) {
+fun HTML.feedbackPage(channel: FeedbackChannel, now: Instant) {
+    val effectivelyOpen = channel.isEffectivelyOpen(now)
     head {
         meta { charset = "utf-8" }
         meta {
@@ -71,10 +82,28 @@ fun HTML.feedbackPage(channel: FeedbackChannel) {
                     +channel.speakers.joinToString(", ")
                 }
 
-                if (!channel.isOpen) {
+                if (!effectivelyOpen) {
                     div("channel-closed-notice") {
-                        h2 { +"Feedback is not open yet" }
-                        p { +"Please check again closer to when the session starts" }
+                        val opensAt = channel.opensAt
+                        val closesAt = channel.closesAt
+                        when {
+                            !channel.isOpen -> {
+                                h2 { +"Feedback is not open yet" }
+                                p { +"Please check again closer to when the session starts" }
+                            }
+                            opensAt != null && now.isBefore(opensAt) -> {
+                                h2 { +"Feedback is not open yet" }
+                                p { +"Opens ${opensAt.formatOslo()}" }
+                            }
+                            closesAt != null && !now.isBefore(closesAt) -> {
+                                h2 { +"Feedback is closed" }
+                                p { +"This session closed for feedback ${closesAt.formatOslo()}" }
+                            }
+                            else -> {
+                                h2 { +"Feedback is not open" }
+                                p { +"Please check again closer to when the session starts" }
+                            }
+                        }
                     }
                 } else {
                     form {
@@ -128,7 +157,7 @@ fun HTML.feedbackPage(channel: FeedbackChannel) {
             }
         }
 
-        if (channel.isOpen) {
+        if (effectivelyOpen) {
             script { src = "/static/js/feedback.js" }
         }
     }

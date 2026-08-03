@@ -11,10 +11,11 @@ import no.javazone.feedback.domain.errors.ExternalIdGenerationException
 import no.javazone.feedback.domain.errors.FeedbackNotFoundError
 import no.javazone.feedback.domain.generators.ExternalIdGenerator
 import no.javazone.feedback.domain.persistence.FeedbackRepository
+import java.time.Instant
 
 class FeedbackAdapter(
     private val repository: FeedbackRepository,
-    private val externalIdGenerator: ExternalIdGenerator
+    private val externalIdGenerator: ExternalIdGenerator,
 ) {
     companion object {
         private const val MAX_RETRIES = 3
@@ -27,7 +28,9 @@ class FeedbackAdapter(
                     title = input.title,
                     speakers = input.speakers,
                     externalId = externalIdGenerator.generate(),
-                    ratingCategories = input.ratings
+                    ratingCategories = input.ratings,
+                    opensAt = input.opensAt,
+                    closesAt = input.closesAt,
                 )
                 return repository.intializeChannel(channel)
             } catch (_: ExternalIdAlreadyExistsError) {
@@ -37,10 +40,10 @@ class FeedbackAdapter(
         throw ExternalIdGenerationException()
     }
 
-    fun submitFeedback(channelId: String, feedback: Feedback): FeedbackWithChannel {
+    fun submitFeedback(channelId: String, feedback: Feedback, now: Instant): FeedbackWithChannel {
         val feedbackChannel = repository.findByChannelId(channelId)
             ?: throw ChannelNotFoundError(channelId)
-        if (!feedbackChannel.isOpen) {
+        if (!feedbackChannel.isEffectivelyOpen(now)) {
             throw ChannelClosedError(channelId)
         }
         val createdFeedback = repository.submitFeedback(feedback, feedbackChannel)

@@ -3,8 +3,23 @@ package no.javazone.feedback.pages
 import kotlinx.html.*
 import no.javazone.feedback.domain.Feedback
 import no.javazone.feedback.domain.FeedbackChannel
+import java.time.Instant
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
-fun HTML.adminChannelPage(channel: FeedbackChannel, feedbacks: List<Feedback>) {
+private val ADMIN_OSLO: ZoneId = ZoneId.of("Europe/Oslo")
+private val ADMIN_DATETIME_LOCAL: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm")
+private val ADMIN_DISPLAY: DateTimeFormatter =
+    DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm z").withZone(ADMIN_OSLO)
+
+private fun Instant.toDatetimeLocalOslo(): String =
+    LocalDateTime.ofInstant(this, ADMIN_OSLO).format(ADMIN_DATETIME_LOCAL)
+
+private fun Instant.displayOslo(): String = ADMIN_DISPLAY.format(this)
+
+fun HTML.adminChannelPage(channel: FeedbackChannel, feedbacks: List<Feedback>, now: Instant) {
+    val effectivelyOpen = channel.isEffectivelyOpen(now)
     head {
         meta { charset = "utf-8" }
         meta {
@@ -24,12 +39,21 @@ fun HTML.adminChannelPage(channel: FeedbackChannel, feedbacks: List<Feedback>) {
                 p("speakers") { +channel.speakers.joinToString(", ") }
                 p("channel-status") {
                     +"Status: "
-                    span(if (channel.isOpen) "status-open" else "status-closed") {
-                        +if (channel.isOpen) "Open" else "Closed"
+                    span(if (effectivelyOpen) "status-open" else "status-closed") {
+                        +if (effectivelyOpen) "Open" else "Closed"
                     }
+                    +" (master switch: ${if (channel.isOpen) "on" else "off"})"
                     +" \u00b7 ${feedbacks.size} feedback${if (feedbacks.size == 1) "" else "s"}"
                 }
+                p("channel-schedule-current") {
+                    +"Opens at: "
+                    +(channel.opensAt?.displayOslo() ?: "not scheduled")
+                    +" \u00b7 Closes at: "
+                    +(channel.closesAt?.displayOslo() ?: "not scheduled")
+                }
             }
+
+            scheduleForm(channel)
 
             if (feedbacks.isEmpty()) {
                 div("card empty-state") {
@@ -41,6 +65,60 @@ fun HTML.adminChannelPage(channel: FeedbackChannel, feedbacks: List<Feedback>) {
                         feedbackRow(channel, feedback)
                     }
                 }
+            }
+        }
+    }
+}
+
+private fun FlowContent.scheduleForm(channel: FeedbackChannel) {
+    div("card schedule-form-card") {
+        h2 { +"Schedule" }
+        p {
+            em { +"Times are in Europe/Oslo. Leave a field empty to remove that schedule." }
+        }
+        form(
+            method = FormMethod.post,
+            action = "/admin/channel/${channel.externalId}/schedule",
+        ) {
+            classes = setOf("schedule-form")
+
+            div("schedule-master-switch") {
+                label {
+                    input(InputType.checkBox) {
+                        name = "isOpen"
+                        value = "true"
+                        checked = channel.isOpen
+                    }
+                    +" Master switch: allow submissions"
+                }
+            }
+
+            div("schedule-field") {
+                label {
+                    htmlFor = "opens-at"
+                    +"Opens at"
+                }
+                input(InputType.dateTimeLocal) {
+                    id = "opens-at"
+                    name = "opensAt"
+                    value = channel.opensAt?.toDatetimeLocalOslo() ?: ""
+                }
+            }
+
+            div("schedule-field") {
+                label {
+                    htmlFor = "closes-at"
+                    +"Closes at"
+                }
+                input(InputType.dateTimeLocal) {
+                    id = "closes-at"
+                    name = "closesAt"
+                    value = channel.closesAt?.toDatetimeLocalOslo() ?: ""
+                }
+            }
+
+            div("feedback-actions") {
+                button(type = ButtonType.submit, classes = "save-btn") { +"Save schedule" }
             }
         }
     }

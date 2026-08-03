@@ -37,7 +37,9 @@ internal class FakeFeedbackRepository(
             speakers = channel.speakers,
             externalId = existing.externalId,
             ratingCategories = existing.ratingCategories,
-            isOpen = channel.isOpen
+            isOpen = channel.isOpen,
+            opensAt = channel.opensAt,
+            closesAt = channel.closesAt,
         )
         channels[channel.externalId] = updated
         return updated

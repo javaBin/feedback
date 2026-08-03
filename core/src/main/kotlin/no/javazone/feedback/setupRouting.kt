@@ -12,8 +12,9 @@ import no.javazone.feedback.routes.feedbackChannelRoutes
 import no.javazone.feedback.routes.healthRoutes
 import no.javazone.feedback.routes.landingRoutes
 import no.javazone.feedback.routes.sessionRoutes
+import java.time.Clock
 
-fun Application.setupRouting() {
+fun Application.setupRouting(clock: Clock = Clock.systemUTC()) {
     val feedbackAdapter = FeedbackAdapter(
         repository = FeedbackRepositoryDb,
         externalIdGenerator = ExternalIdGeneratorDefault,
@@ -26,8 +27,8 @@ fun Application.setupRouting() {
 
         landingRoutes(feedbackAdapter)
         healthRoutes()
-        sessionRoutes(feedbackAdapter)
-        feedbackChannelRoutes(feedbackAdapter, qrCodeGenerator)
-        adminRoutes(feedbackAdapter)
+        sessionRoutes(feedbackAdapter, clock)
+        feedbackChannelRoutes(feedbackAdapter, qrCodeGenerator, clock)
+        adminRoutes(feedbackAdapter, clock)
     }
 }
