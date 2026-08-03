@@ -42,27 +42,40 @@ fun HTML.adminChannelPage(channel: FeedbackChannel, feedbacks: List<Feedback>, n
                     span(if (effectivelyOpen) "status-open" else "status-closed") {
                         +if (effectivelyOpen) "Open" else "Closed"
                     }
-                    +" (master switch: ${if (channel.isOpen) "on" else "off"})"
                     +" \u00b7 ${feedbacks.size} feedback${if (feedbacks.size == 1) "" else "s"}"
                 }
                 p("channel-schedule-current") {
-                    +"Opens at: "
-                    +(channel.opensAt?.displayOslo() ?: "not scheduled")
-                    +" \u00b7 Closes at: "
-                    +(channel.closesAt?.displayOslo() ?: "not scheduled")
+                    span("schedule-label") { +"Opens at" }
+                    span("schedule-value") {
+                        +(channel.opensAt?.displayOslo() ?: "not scheduled")
+                    }
+                    span("schedule-label") { +"Closes at" }
+                    span("schedule-value") {
+                        +(channel.closesAt?.displayOslo() ?: "not scheduled")
+                    }
+                    span("schedule-label") { +"Submissions" }
+                    span("schedule-value") {
+                        +(if (channel.isOpen) "enabled" else "disabled")
+                    }
                 }
             }
 
             scheduleForm(channel)
 
-            if (feedbacks.isEmpty()) {
-                div("card empty-state") {
-                    p { +"No feedback has been submitted yet." }
+            section("feedback-section") {
+                h2("section-heading") {
+                    +"Feedback"
+                    span("section-count") { +"${feedbacks.size}" }
                 }
-            } else {
-                div("feedback-list") {
-                    feedbacks.forEach { feedback ->
-                        feedbackRow(channel, feedback)
+                if (feedbacks.isEmpty()) {
+                    div("card empty-state") {
+                        p { +"No feedback has been submitted yet." }
+                    }
+                } else {
+                    div("feedback-list") {
+                        feedbacks.forEach { feedback ->
+                            feedbackRow(channel, feedback)
+                        }
                     }
                 }
             }
@@ -72,9 +85,9 @@ fun HTML.adminChannelPage(channel: FeedbackChannel, feedbacks: List<Feedback>, n
 
 private fun FlowContent.scheduleForm(channel: FeedbackChannel) {
     div("card schedule-form-card") {
-        h2 { +"Schedule" }
-        p {
-            em { +"Times are in Europe/Oslo. Leave a field empty to remove that schedule." }
+        h2("section-heading") { +"Schedule" }
+        p("section-hint") {
+            +"Times are in Europe/Oslo. Leave a field empty to remove that schedule."
         }
         form(
             method = FormMethod.post,
@@ -83,13 +96,16 @@ private fun FlowContent.scheduleForm(channel: FeedbackChannel) {
             classes = setOf("schedule-form")
 
             div("schedule-master-switch") {
-                label {
+                label("switch-label") {
                     input(InputType.checkBox) {
                         name = "isOpen"
                         value = "true"
                         checked = channel.isOpen
                     }
-                    +" Master switch: allow submissions"
+                    span { +"Enable feedback submissions" }
+                }
+                p("switch-hint") {
+                    +"Must be enabled for feedback to be accepted. The scheduled window below further restricts when submissions are allowed."
                 }
             }
 
