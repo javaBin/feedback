@@ -807,7 +807,7 @@ class FeedbackEndpointsTest {
             install(ContentNegotiation) { json() }
         }
 
-        jsonClient.post("/v1/feedback/channel") {
+        val channel = jsonClient.post("/v1/feedback/channel") {
             adminAuth()
             contentType(ContentType.Application.Json)
             setBody(
@@ -817,17 +817,19 @@ class FeedbackEndpointsTest {
                     ratingCategories = listOf(FeedbackChannelRatingCategoryDTO(id = null, title = "Rating"))
                 )
             )
-        }
+        }.body<FeedbackChannelDTO>()
 
-        val response = client.get("/")
+        val response = client.get("/") { adminAuth() }
 
         assertEquals(HttpStatusCode.OK, response.status)
         assertEquals(ContentType.Text.Html.withCharset(Charsets.UTF_8), response.contentType())
 
         val body = response.bodyAsText()
-        assertTrue(body.contains("Feedback Channels"))
+        assertTrue(body.contains("Admin dashboard"))
         assertTrue(body.contains("Landing showcase"))
         assertTrue(body.contains("Alice"))
+        assertTrue(body.contains("/admin/channel/${channel.channelId}"))
+        assertTrue(!body.contains("href=\"/session/${channel.channelId}\""))
     }
 
     @Test
@@ -836,10 +838,112 @@ class FeedbackEndpointsTest {
             module(TestDatabase.config(), testAuthConfig)
         }
 
-        val response = client.get("/")
+        val response = client.get("/") { adminAuth() }
 
         assertEquals(HttpStatusCode.OK, response.status)
         val body = response.bodyAsText()
         assertTrue(body.contains("No feedback channels have been created yet."))
+    }
+
+    @Test
+    fun `landing page without auth returns unauthorized`() = testApplication {
+        application {
+            module(TestDatabase.config(), testAuthConfig)
+        }
+
+        val response = client.get("/")
+
+        assertEquals(HttpStatusCode.Unauthorized, response.status)
+    }
+
+    @Test
+    fun `session page without auth does not show edit-in-admin link`() = testApplication {
+        application {
+            module(TestDatabase.config(), testAuthConfig)
+        }
+
+        val jsonClient = createClient {
+            install(ContentNegotiation) { json() }
+        }
+
+        val channel = jsonClient.post("/v1/feedback/channel") {
+            adminAuth()
+            contentType(ContentType.Application.Json)
+            setBody(
+                FeedbackChannelCreationDTO(
+                    title = "Anon view",
+                    speakers = listOf("Speaker"),
+                    ratingCategories = listOf(FeedbackChannelRatingCategoryDTO(id = null, title = "Rating"))
+                )
+            )
+        }.body<FeedbackChannelDTO>()
+
+        val response = client.get("/session/${channel.channelId}")
+
+        assertEquals(HttpStatusCode.OK, response.status)
+        val body = response.bodyAsText()
+        assertTrue(!body.contains("Edit in admin"))
+        assertTrue(!body.contains("admin-edit-link"))
+    }
+
+    @Test
+    fun `session page with admin auth shows edit-in-admin link`() = testApplication {
+        application {
+            module(TestDatabase.config(), testAuthConfig)
+        }
+
+        val jsonClient = createClient {
+            install(ContentNegotiation) { json() }
+        }
+
+        val channel = jsonClient.post("/v1/feedback/channel") {
+            adminAuth()
+            contentType(ContentType.Application.Json)
+            setBody(
+                FeedbackChannelCreationDTO(
+                    title = "Admin view",
+                    speakers = listOf("Speaker"),
+                    ratingCategories = listOf(FeedbackChannelRatingCategoryDTO(id = null, title = "Rating"))
+                )
+            )
+        }.body<FeedbackChannelDTO>()
+
+        val response = client.get("/session/${channel.channelId}") { adminAuth() }
+
+        assertEquals(HttpStatusCode.OK, response.status)
+        val body = response.bodyAsText()
+        assertTrue(body.contains("Edit in admin"))
+        assertTrue(body.contains("/admin/channel/${channel.channelId}"))
+    }
+
+    @Test
+    fun `session page with invalid credentials returns unauthorized`() = testApplication {
+        application {
+            module(TestDatabase.config(), testAuthConfig)
+        }
+
+        val jsonClient = createClient {
+            install(ContentNegotiation) { json() }
+        }
+
+        val channel = jsonClient.post("/v1/feedback/channel") {
+            adminAuth()
+            contentType(ContentType.Application.Json)
+            setBody(
+                FeedbackChannelCreationDTO(
+                    title = "Bad creds",
+                    speakers = listOf("Speaker"),
+                    ratingCategories = listOf(FeedbackChannelRatingCategoryDTO(id = null, title = "Rating"))
+                )
+            )
+        }.body<FeedbackChannelDTO>()
+
+        val response = client.get("/session/${channel.channelId}") {
+            adminAuth(user = "wrong", password = "wrong")
+        }
+
+        // With optional auth, providing wrong credentials is still a hard fail.
+        // Anonymous access (no header) still works — covered by the other test.
+        assertEquals(HttpStatusCode.Unauthorized, response.status)
     }
 }

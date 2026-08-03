@@ -20,7 +20,7 @@ fun HTML.landingPage(channels: List<FeedbackChannel>) {
             name = "viewport"
             content = "width=device-width, initial-scale=1"
         }
-        title { +"Feedback Channels" }
+        title { +"Admin dashboard" }
         link {
             rel = "stylesheet"
             href = "/static/css/feedback.css"
@@ -29,8 +29,8 @@ fun HTML.landingPage(channels: List<FeedbackChannel>) {
     body {
         main("landing") {
             div("landing-header") {
-                h1 { +"Feedback Channels" }
-                p { +"Scan a QR code or tap a card to leave feedback for a session." }
+                h1 { +"Admin dashboard" }
+                p { +"Manage feedback channels" }
             }
             if (channels.isEmpty()) {
                 div("card empty-state") {
@@ -39,7 +39,7 @@ fun HTML.landingPage(channels: List<FeedbackChannel>) {
             } else {
                 div("channel-grid") {
                     channels.forEach { channel ->
-                        a(href = "/session/${channel.externalId}", classes = "channel-card card") {
+                        a(href = "/admin/channel/${channel.externalId}", classes = "channel-card card") {
                             img(alt = "QR code for ${channel.title}") {
                                 src = "/v1/feedback/channel/${channel.externalId}/qrcode"
                                 width = "200"
@@ -59,7 +59,7 @@ fun HTML.landingPage(channels: List<FeedbackChannel>) {
     }
 }
 
-fun HTML.feedbackPage(channel: FeedbackChannel, now: Instant) {
+fun HTML.feedbackPage(channel: FeedbackChannel, now: Instant, isAdmin: Boolean = false) {
     val effectivelyOpen = channel.isEffectivelyOpen(now)
     head {
         meta { charset = "utf-8" }
@@ -76,6 +76,12 @@ fun HTML.feedbackPage(channel: FeedbackChannel, now: Instant) {
     }
     body {
         main {
+            if (isAdmin) {
+                a(
+                    href = "/admin/channel/${channel.externalId}",
+                    classes = "admin-edit-link",
+                ) { +"Edit in admin" }
+            }
             div("card") {
                 h1 { +channel.title }
                 p("speakers") {
