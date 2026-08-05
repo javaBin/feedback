@@ -6,10 +6,9 @@ import no.javazone.feedback.domain.FeedbackChannel
 import no.javazone.feedback.domain.FeedbackChannelCreationInput
 import no.javazone.feedback.domain.FeedbackChannelRatingCategory
 import no.javazone.feedback.domain.FeedbackRating
-import no.javazone.feedback.domain.SequentialIdGenerator
 import no.javazone.feedback.domain.errors.ChannelClosedError
-import no.javazone.feedback.domain.errors.ExternalIdGenerationException
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.time.Instant
@@ -25,10 +24,9 @@ class FeedbackAdapterTest {
     )
 
     @Test
-    fun `should create a feedback channel`() {
+    fun `should create a feedback channel with a repository-assigned external id`() {
         val adapter = FeedbackAdapter(
-            repository = FakeFeedbackRepository(),
-            externalIdGenerator = SequentialIdGenerator("AAAA")
+            repository = FakeFeedbackRepository(sequenceOf("AAAA").iterator()),
         )
 
         val channel = adapter.createFeedbackChannel(defaultInput)
@@ -37,46 +35,15 @@ class FeedbackAdapterTest {
     }
 
     @Test
-    fun `should succeed on first attempt when no collision`() {
+    fun `should return channel with populated external id`() {
         val adapter = FeedbackAdapter(
             repository = FakeFeedbackRepository(),
-            externalIdGenerator = SequentialIdGenerator("ABCD")
         )
 
         val channel = adapter.createFeedbackChannel(defaultInput)
 
-        assertEquals("ABCD", channel.externalId)
-    }
-
-    @Test
-    fun `should retry and succeed when external id collides`() {
-        val repo = FakeFeedbackRepository(existingExternalIds = mutableSetOf("DUPE"))
-        val adapter = FeedbackAdapter(
-            repository = repo,
-            externalIdGenerator = SequentialIdGenerator("DUPE", "DUPE", "GOOD")
-        )
-
-        val channel = adapter.createFeedbackChannel(defaultInput)
-
-        assertEquals("GOOD", channel.externalId)
-    }
-
-    @Test
-    fun `should throw ExternalIdGenerationException when all retries are exhausted`() {
-        val repo = FakeFeedbackRepository(existingExternalIds = mutableSetOf("DUPE"))
-        val adapter = FeedbackAdapter(
-            repository = repo,
-            externalIdGenerator = SequentialIdGenerator("DUPE", "DUPE", "DUPE")
-        )
-
-        val exception = assertThrows<ExternalIdGenerationException> {
-            adapter.createFeedbackChannel(defaultInput)
-        }
-
-        assertEquals(
-            "Failed to generate a unique external id after multiple attempts.",
-            exception.message
-        )
+        assertNotNull(channel.externalId)
+        assert(channel.externalId.isNotEmpty())
     }
 
     private fun openChannelInRepo(
@@ -85,7 +52,7 @@ class FeedbackAdapterTest {
         closesAt: Instant?,
         isOpen: Boolean = true,
     ) {
-        repo.intializeChannel(
+        repo.insertExisting(
             FeedbackChannel(
                 title = "T",
                 speakers = listOf("S"),
@@ -106,10 +73,7 @@ class FeedbackAdapterTest {
         val repo = FakeFeedbackRepository()
         val opens = Instant.parse("2026-09-01T09:00:00Z")
         openChannelInRepo(repo, opensAt = opens, closesAt = null)
-        val adapter = FeedbackAdapter(
-            repository = repo,
-            externalIdGenerator = SequentialIdGenerator("X"),
-        )
+        val adapter = FeedbackAdapter(repository = repo)
         assertThrows<ChannelClosedError> {
             adapter.submitFeedback("SCHD", sampleFeedback(), Instant.parse("2026-09-01T08:59:59Z"))
         }
@@ -123,10 +87,7 @@ class FeedbackAdapterTest {
             opensAt = Instant.parse("2026-09-01T09:00:00Z"),
             closesAt = Instant.parse("2026-09-01T10:00:00Z"),
         )
-        val adapter = FeedbackAdapter(
-            repository = repo,
-            externalIdGenerator = SequentialIdGenerator("X"),
-        )
+        val adapter = FeedbackAdapter(repository = repo)
         val result = adapter.submitFeedback(
             "SCHD",
             sampleFeedback(),
@@ -140,10 +101,7 @@ class FeedbackAdapterTest {
         val repo = FakeFeedbackRepository()
         val closes = Instant.parse("2026-09-01T10:00:00Z")
         openChannelInRepo(repo, opensAt = null, closesAt = closes)
-        val adapter = FeedbackAdapter(
-            repository = repo,
-            externalIdGenerator = SequentialIdGenerator("X"),
-        )
+        val adapter = FeedbackAdapter(repository = repo)
         assertThrows<ChannelClosedError> {
             adapter.submitFeedback("SCHD", sampleFeedback(), closes)
         }
@@ -158,13 +116,9 @@ class FeedbackAdapterTest {
             closesAt = Instant.parse("2026-09-01T10:00:00Z"),
             isOpen = false,
         )
-        val adapter = FeedbackAdapter(
-            repository = repo,
-            externalIdGenerator = SequentialIdGenerator("X"),
-        )
+        val adapter = FeedbackAdapter(repository = repo)
         assertThrows<ChannelClosedError> {
             adapter.submitFeedback("SCHD", sampleFeedback(), Instant.parse("2026-09-01T09:30:00Z"))
         }
     }
 }
-

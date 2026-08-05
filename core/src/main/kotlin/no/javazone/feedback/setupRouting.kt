@@ -5,7 +5,6 @@ import io.ktor.server.http.content.staticResources
 import io.ktor.server.routing.routing
 import no.javazone.feedback.database.repository.FeedbackRepositoryDb
 import no.javazone.feedback.domain.adapters.FeedbackAdapter
-import no.javazone.feedback.domain.generators.ExternalIdGeneratorDefault
 import no.javazone.feedback.qrcode.QRCodeGenerator
 import no.javazone.feedback.routes.adminRoutes
 import no.javazone.feedback.routes.feedbackChannelRoutes
@@ -17,7 +16,6 @@ import java.time.Clock
 fun Application.setupRouting(clock: Clock = Clock.systemUTC()) {
     val feedbackAdapter = FeedbackAdapter(
         repository = FeedbackRepositoryDb,
-        externalIdGenerator = ExternalIdGeneratorDefault,
     )
     val qrCodeGenerator = QRCodeGenerator()
 

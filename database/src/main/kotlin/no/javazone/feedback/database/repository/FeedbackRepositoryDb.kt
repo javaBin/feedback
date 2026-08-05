@@ -6,11 +6,10 @@ import no.javazone.feedback.database.models.Feedbacks
 import no.javazone.feedback.database.models.RatingTypes
 import no.javazone.feedback.domain.Feedback
 import no.javazone.feedback.domain.FeedbackChannel
+import no.javazone.feedback.domain.FeedbackChannelCreationInput
 import no.javazone.feedback.domain.FeedbackChannelRatingCategory
 import no.javazone.feedback.domain.FeedbackRating
-import no.javazone.feedback.domain.errors.ExternalIdAlreadyExistsError
 import no.javazone.feedback.domain.persistence.FeedbackRepository
-import org.jetbrains.exposed.exceptions.ExposedSQLException
 import org.jetbrains.exposed.sql.JoinType
 import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
@@ -21,7 +20,6 @@ import org.jetbrains.exposed.sql.insertReturning
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.update
-import org.postgresql.util.PSQLState
 import java.time.Instant
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
@@ -30,51 +28,46 @@ private fun Instant?.toOffset(): OffsetDateTime? = this?.atOffset(ZoneOffset.UTC
 private fun OffsetDateTime?.toInstantOrNull(): Instant? = this?.toInstant()
 
 object FeedbackRepositoryDb : FeedbackRepository {
-    override fun intializeChannel(channel: FeedbackChannel): FeedbackChannel {
-        try {
-            return transaction {
-                val createdChannelId = FeedbackChannels.insertReturning {
-                    it[title] = channel.title
-                    it[speakers] = channel.speakers
-                    it[externalId] = channel.externalId
-                    it[isOpen] = channel.isOpen
-                    it[opensAt] = channel.opensAt.toOffset()
-                    it[closesAt] = channel.closesAt.toOffset()
-                }.map {
-                    it[FeedbackChannels.id]
-                }.first()
+    override fun intializeChannel(input: FeedbackChannelCreationInput): FeedbackChannel {
+        return transaction {
+            val insertedRow = FeedbackChannels.insertReturning(
+                returning = listOf(
+                    FeedbackChannels.id,
+                    FeedbackChannels.externalId,
+                    FeedbackChannels.isOpen,
+                    FeedbackChannels.opensAt,
+                    FeedbackChannels.closesAt,
+                )
+            ) {
+                it[title] = input.title
+                it[speakers] = input.speakers
+                it[opensAt] = input.opensAt.toOffset()
+                it[closesAt] = input.closesAt.toOffset()
+            }.first()
 
-                val ratingCategories = RatingTypes.batchInsert(channel.ratingCategories) { rating ->
-                    this[RatingTypes.channelId] = createdChannelId.value
-                    this[RatingTypes.ratingName] = rating.name
-                    this[RatingTypes.createdAt] = Instant.now()
-                }.map {
-                    FeedbackChannelRatingCategory(
-                        id = it[RatingTypes.id].value,
-                        name = it[RatingTypes.ratingName]
-                    )
-                }
+            val createdChannelId = insertedRow[FeedbackChannels.id]
 
-                FeedbackChannels.selectAll().where {
-                    FeedbackChannels.id eq createdChannelId
-                }.map {
-                    FeedbackChannel(
-                        id = it[FeedbackChannels.id].value,
-                        title = it[FeedbackChannels.title],
-                        speakers = it[FeedbackChannels.speakers],
-                        externalId = it[FeedbackChannels.externalId],
-                        ratingCategories = ratingCategories,
-                        isOpen = it[FeedbackChannels.isOpen],
-                        opensAt = it[FeedbackChannels.opensAt].toInstantOrNull(),
-                        closesAt = it[FeedbackChannels.closesAt].toInstantOrNull(),
-                    )
-                }.first()
+            val ratingCategories = RatingTypes.batchInsert(input.ratings) { rating ->
+                this[RatingTypes.channelId] = createdChannelId.value
+                this[RatingTypes.ratingName] = rating.name
+                this[RatingTypes.createdAt] = Instant.now()
+            }.map {
+                FeedbackChannelRatingCategory(
+                    id = it[RatingTypes.id].value,
+                    name = it[RatingTypes.ratingName]
+                )
             }
-        } catch (e: ExposedSQLException) {
-            if (e.sqlState == PSQLState.UNIQUE_VIOLATION.state) {
-                throw ExternalIdAlreadyExistsError(channel.externalId, cause = e)
-            }
-            throw e
+
+            FeedbackChannel(
+                id = createdChannelId.value,
+                title = input.title,
+                speakers = input.speakers,
+                externalId = insertedRow[FeedbackChannels.externalId],
+                ratingCategories = ratingCategories,
+                isOpen = insertedRow[FeedbackChannels.isOpen],
+                opensAt = insertedRow[FeedbackChannels.opensAt].toInstantOrNull(),
+                closesAt = insertedRow[FeedbackChannels.closesAt].toInstantOrNull(),
+            )
         }
     }
 

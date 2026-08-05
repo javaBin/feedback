@@ -11,11 +11,5 @@ class ChannelNotFoundError(channelId: String) :
 class ChannelClosedError(channelId: String) :
     DomainErrors("Channel with id $channelId is closed for feedback.")
 
-class ExternalIdAlreadyExistsError(externalId: String, cause: Throwable? = null) :
-    DomainErrors("Channel with external id $externalId already exists.", cause)
-
-class ExternalIdGenerationException :
-    DomainErrors("Failed to generate a unique external id after multiple attempts.")
-
 class FeedbackNotFoundError(feedbackId: Long) :
     DomainErrors("Feedback with id $feedbackId not found.")

@@ -1,20 +1,31 @@
 package no.javazone.feedback.domain
 
-import no.javazone.feedback.domain.errors.ExternalIdAlreadyExistsError
 import no.javazone.feedback.domain.persistence.FeedbackRepository
 
 internal class FakeFeedbackRepository(
-    private val existingExternalIds: MutableSet<String> = mutableSetOf()
+    private val externalIdSequence: Iterator<String> = generateSequence(0) { it + 1 }
+        .map { "T%03d".format(it) }
+        .iterator()
 ) : FeedbackRepository {
     private val channels = mutableMapOf<String, FeedbackChannel>()
+    private var nextId = 1L
 
-    override fun intializeChannel(channel: FeedbackChannel): FeedbackChannel {
-        if (channel.externalId in existingExternalIds) {
-            throw ExternalIdAlreadyExistsError(channel.externalId)
-        }
-        existingExternalIds.add(channel.externalId)
+    override fun intializeChannel(input: FeedbackChannelCreationInput): FeedbackChannel {
+        val channel = FeedbackChannel(
+            id = nextId++,
+            title = input.title,
+            speakers = input.speakers,
+            externalId = externalIdSequence.next(),
+            ratingCategories = input.ratings,
+            opensAt = input.opensAt,
+            closesAt = input.closesAt,
+        )
         channels[channel.externalId] = channel
         return channel
+    }
+
+    fun insertExisting(channel: FeedbackChannel) {
+        channels[channel.externalId] = channel
     }
 
     override fun submitFeedback(feedback: Feedback, feedbackChannel: FeedbackChannel): Feedback {

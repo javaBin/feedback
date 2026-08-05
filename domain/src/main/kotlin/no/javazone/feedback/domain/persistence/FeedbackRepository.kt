@@ -2,9 +2,10 @@ package no.javazone.feedback.domain.persistence
 
 import no.javazone.feedback.domain.Feedback
 import no.javazone.feedback.domain.FeedbackChannel
+import no.javazone.feedback.domain.FeedbackChannelCreationInput
 
 interface FeedbackRepository {
-    fun intializeChannel(channel: FeedbackChannel): FeedbackChannel
+    fun intializeChannel(input: FeedbackChannelCreationInput): FeedbackChannel
     fun submitFeedback(feedback: Feedback, feedbackChannel: FeedbackChannel): Feedback
     fun findByChannelId(channelId: String): FeedbackChannel?
     fun findAllChannels(): List<FeedbackChannel>
