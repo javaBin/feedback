@@ -167,6 +167,41 @@ button[type="submit"]:disabled {
     padding: 3rem 2rem;
 }
 
+.code-form {
+    margin-top: 1.5rem;
+}
+
+.code-form label {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: 0.5rem;
+}
+
+.code-input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0.85rem;
+    margin-bottom: 1rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    background: #fff;
+    color: #0f172a;
+    font-size: 2rem;
+    font-weight: 700;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.5rem;
+    text-indent: 0.5rem;
+}
+
+.code-input:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+}
+
 .thank-you .checkmark {
     width: 64px;
     height: 64px;
@@ -571,6 +606,21 @@ button.delete-btn:hover {
     }
 
     .comment-group textarea:focus {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(37,99,235,0.35);
+    }
+
+    .code-form label {
+        color: #94a3b8;
+    }
+
+    .code-input {
+        background: #0f172a;
+        border-color: #475569;
+        color: #e2e8f0;
+    }
+
+    .code-input:focus {
         border-color: #3b82f6;
         box-shadow: 0 0 0 3px rgba(37,99,235,0.35);
     }

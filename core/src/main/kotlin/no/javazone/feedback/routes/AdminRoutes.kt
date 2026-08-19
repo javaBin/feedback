@@ -16,6 +16,7 @@ import no.javazone.feedback.domain.adapters.FeedbackAdapter
 import no.javazone.feedback.domain.errors.ChannelNotFoundError
 import no.javazone.feedback.domain.errors.FeedbackNotFoundError
 import no.javazone.feedback.pages.adminChannelPage
+import no.javazone.feedback.pages.adminDashboardPage
 import java.time.Clock
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -30,6 +31,13 @@ private fun parseAdminDatetime(value: String?): java.time.Instant? {
 
 fun Route.adminRoutes(feedbackAdapter: FeedbackAdapter, clock: Clock) {
     authenticate("admin") {
+        route("/admin") {
+            get {
+                val channels = feedbackAdapter.findAllChannels()
+                call.respondHtml { adminDashboardPage(channels) }
+            }
+        }
+
         route("/admin/channel/{channelId}") {
             get {
                 val channelId = call.parameters["channelId"]

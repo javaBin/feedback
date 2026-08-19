@@ -18,6 +18,52 @@ private fun Instant.toDatetimeLocalOslo(): String =
 
 private fun Instant.displayOslo(): String = ADMIN_DISPLAY.format(this)
 
+fun HTML.adminDashboardPage(channels: List<FeedbackChannel>) {
+    head {
+        meta { charset = "utf-8" }
+        meta {
+            name = "viewport"
+            content = "width=device-width, initial-scale=1"
+        }
+        title { +"Admin dashboard" }
+        link {
+            rel = "stylesheet"
+            href = "/static/css/feedback.css"
+        }
+    }
+    body {
+        main("landing") {
+            div("landing-header") {
+                h1 { +"Admin dashboard" }
+                p { +"Manage feedback channels" }
+            }
+            if (channels.isEmpty()) {
+                div("card empty-state") {
+                    p { +"No feedback channels have been created yet." }
+                }
+            } else {
+                div("channel-grid") {
+                    channels.forEach { channel ->
+                        a(href = "/admin/channel/${channel.externalId}", classes = "channel-card card") {
+                            img(alt = "QR code for ${channel.title}") {
+                                src = "/v1/feedback/channel/${channel.externalId}/qrcode"
+                                width = "200"
+                                height = "200"
+                            }
+                            div("channel-info") {
+                                h2 { +channel.title }
+                                p("speakers") {
+                                    +channel.speakers.joinToString(", ")
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 fun HTML.adminChannelPage(channel: FeedbackChannel, feedbacks: List<Feedback>, now: Instant) {
     val effectivelyOpen = channel.isEffectivelyOpen(now)
     head {

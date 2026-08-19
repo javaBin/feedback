@@ -3,6 +3,7 @@ package no.javazone.feedback
 import io.ktor.client.call.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
+import io.ktor.client.request.forms.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
@@ -798,7 +799,7 @@ class FeedbackEndpointsTest {
     }
 
     @Test
-    fun `landing page returns HTML and lists created channels`() = testApplication {
+    fun `admin dashboard returns HTML and lists created channels`() = testApplication {
         application {
             module(TestDatabase.config(), testAuthConfig)
         }
@@ -819,7 +820,7 @@ class FeedbackEndpointsTest {
             )
         }.body<FeedbackChannelDTO>()
 
-        val response = client.get("/") { adminAuth() }
+        val response = client.get("/admin") { adminAuth() }
 
         assertEquals(HttpStatusCode.OK, response.status)
         assertEquals(ContentType.Text.Html.withCharset(Charsets.UTF_8), response.contentType())
@@ -833,12 +834,12 @@ class FeedbackEndpointsTest {
     }
 
     @Test
-    fun `landing page shows empty state when no channels exist`() = testApplication {
+    fun `admin dashboard shows empty state when no channels exist`() = testApplication {
         application {
             module(TestDatabase.config(), testAuthConfig)
         }
 
-        val response = client.get("/") { adminAuth() }
+        val response = client.get("/admin") { adminAuth() }
 
         assertEquals(HttpStatusCode.OK, response.status)
         val body = response.bodyAsText()
@@ -846,14 +847,142 @@ class FeedbackEndpointsTest {
     }
 
     @Test
-    fun `landing page without auth returns unauthorized`() = testApplication {
+    fun `admin dashboard without auth returns unauthorized`() = testApplication {
         application {
             module(TestDatabase.config(), testAuthConfig)
         }
 
-        val response = client.get("/")
+        val response = client.get("/admin")
 
         assertEquals(HttpStatusCode.Unauthorized, response.status)
+    }
+
+    @Test
+    fun `landing page shows code form without auth and reveals no channels`() = testApplication {
+        application {
+            module(TestDatabase.config(), testAuthConfig)
+        }
+
+        val jsonClient = createClient {
+            install(ContentNegotiation) { json() }
+        }
+        jsonClient.post("/v1/feedback/channel") {
+            adminAuth()
+            contentType(ContentType.Application.Json)
+            setBody(
+                FeedbackChannelCreationDTO(
+                    title = "Secret session",
+                    speakers = listOf("Alice"),
+                    ratingCategories = listOf(FeedbackChannelRatingCategoryDTO(id = null, title = "Rating"))
+                )
+            )
+        }.body<FeedbackChannelDTO>()
+
+        val response = client.get("/")
+
+        assertEquals(HttpStatusCode.OK, response.status)
+        assertEquals(ContentType.Text.Html.withCharset(Charsets.UTF_8), response.contentType())
+
+        val body = response.bodyAsText()
+        assertTrue(body.contains("name=\"code\""))
+        assertTrue(!body.contains("Secret session"))
+        assertTrue(!body.contains("Admin dashboard"))
+    }
+
+    @Test
+    fun `posting a valid code redirects to the session page`() = testApplication {
+        application {
+            module(TestDatabase.config(), testAuthConfig)
+        }
+
+        val jsonClient = createClient {
+            install(ContentNegotiation) { json() }
+        }
+        val channel = jsonClient.post("/v1/feedback/channel") {
+            adminAuth()
+            contentType(ContentType.Application.Json)
+            setBody(
+                FeedbackChannelCreationDTO(
+                    title = "Code lookup",
+                    speakers = listOf("Alice"),
+                    ratingCategories = listOf(FeedbackChannelRatingCategoryDTO(id = null, title = "Rating"))
+                )
+            )
+        }.body<FeedbackChannelDTO>()
+
+        val redirectClient = createClient { followRedirects = false }
+
+        val response = redirectClient.submitForm(
+            url = "/",
+            formParameters = parameters { append("code", channel.channelId) },
+        )
+
+        assertEquals(HttpStatusCode.Found, response.status)
+        assertEquals("/session/${channel.channelId}", response.headers[HttpHeaders.Location])
+    }
+
+    @Test
+    fun `posting a lowercase code is normalized to uppercase`() = testApplication {
+        application {
+            module(TestDatabase.config(), testAuthConfig)
+        }
+
+        val jsonClient = createClient {
+            install(ContentNegotiation) { json() }
+        }
+        val channel = jsonClient.post("/v1/feedback/channel") {
+            adminAuth()
+            contentType(ContentType.Application.Json)
+            setBody(
+                FeedbackChannelCreationDTO(
+                    title = "Lowercase lookup",
+                    speakers = listOf("Alice"),
+                    ratingCategories = listOf(FeedbackChannelRatingCategoryDTO(id = null, title = "Rating"))
+                )
+            )
+        }.body<FeedbackChannelDTO>()
+
+        val redirectClient = createClient { followRedirects = false }
+
+        val response = redirectClient.submitForm(
+            url = "/",
+            formParameters = parameters { append("code", " ${channel.channelId.lowercase()} ") },
+        )
+
+        assertEquals(HttpStatusCode.Found, response.status)
+        assertEquals("/session/${channel.channelId}", response.headers[HttpHeaders.Location])
+    }
+
+    @Test
+    fun `posting an unknown code returns not found with an error message`() = testApplication {
+        application {
+            module(TestDatabase.config(), testAuthConfig)
+        }
+
+        val response = client.submitForm(
+            url = "/",
+            formParameters = parameters { append("code", "ZZZZ") },
+        )
+
+        assertEquals(HttpStatusCode.NotFound, response.status)
+        assertTrue(response.bodyAsText().contains("Fant ingen sesjon med koden"))
+    }
+
+    @Test
+    fun `posting a code of wrong length returns bad request`() = testApplication {
+        application {
+            module(TestDatabase.config(), testAuthConfig)
+        }
+
+        val tooShort = client.submitForm(
+            url = "/",
+            formParameters = parameters { append("code", "AB") },
+        )
+        assertEquals(HttpStatusCode.BadRequest, tooShort.status)
+        assertTrue(tooShort.bodyAsText().contains("Koden må være 4 tegn"))
+
+        val missing = client.submitForm(url = "/", formParameters = parameters { })
+        assertEquals(HttpStatusCode.BadRequest, missing.status)
     }
 
     @Test

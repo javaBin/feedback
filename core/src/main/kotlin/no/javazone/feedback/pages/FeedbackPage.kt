@@ -13,45 +13,51 @@ private val DISPLAY_FORMAT: DateTimeFormatter =
 
 private fun Instant.formatOslo(): String = DISPLAY_FORMAT.format(this)
 
-fun HTML.landingPage(channels: List<FeedbackChannel>) {
+fun HTML.codeEntryPage(code: String? = null, error: String? = null) {
     head {
         meta { charset = "utf-8" }
         meta {
             name = "viewport"
             content = "width=device-width, initial-scale=1"
         }
-        title { +"Admin dashboard" }
+        title { +"JavaZone Feedback" }
         link {
             rel = "stylesheet"
             href = "/static/css/feedback.css"
         }
     }
     body {
-        main("landing") {
-            div("landing-header") {
-                h1 { +"Admin dashboard" }
-                p { +"Manage feedback channels" }
-            }
-            if (channels.isEmpty()) {
-                div("card empty-state") {
-                    p { +"No feedback channels have been created yet." }
+        main {
+            div("card") {
+                h1 { +"Gi tilbakemelding" }
+                p { +"Skriv inn den 4-tegns koden fra skjermen." }
+
+                form(method = FormMethod.post, action = "/", classes = "code-form") {
+                    label {
+                        htmlFor = "code"
+                        +"Kode"
+                    }
+                    input(InputType.text, classes = "code-input") {
+                        id = "code"
+                        name = "code"
+                        value = code.orEmpty()
+                        required = true
+                        minLength = "4"
+                        maxLength = "4"
+                        pattern = "[A-Za-z0-9]{4}"
+                        autoFocus = true
+                        attributes["autocomplete"] = "off"
+                        attributes["autocapitalize"] = "characters"
+                        attributes["inputmode"] = "latin"
+                    }
+
+                    button(type = ButtonType.submit) { +"Gå til skjema" }
                 }
-            } else {
-                div("channel-grid") {
-                    channels.forEach { channel ->
-                        a(href = "/admin/channel/${channel.externalId}", classes = "channel-card card") {
-                            img(alt = "QR code for ${channel.title}") {
-                                src = "/v1/feedback/channel/${channel.externalId}/qrcode"
-                                width = "200"
-                                height = "200"
-                            }
-                            div("channel-info") {
-                                h2 { +channel.title }
-                                p("speakers") {
-                                    +channel.speakers.joinToString(", ")
-                                }
-                            }
-                        }
+
+                if (error != null) {
+                    p("error-message") {
+                        attributes["aria-live"] = "polite"
+                        +error
                     }
                 }
             }
