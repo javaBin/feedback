@@ -130,16 +130,20 @@ fun Route.feedbackChannelRoutes(
                     "" -> null
                     else -> Instant.parse(v)
                 }
-                val merged = FeedbackChannel(
-                    id = existing.id,
-                    title = existing.title,
-                    speakers = existing.speakers,
-                    externalId = existing.externalId,
-                    ratingCategories = existing.ratingCategories,
-                    isOpen = updateInput.isOpen ?: existing.isOpen,
-                    opensAt = newOpensAt,
-                    closesAt = newClosesAt,
-                )
+                val merged = try {
+                    FeedbackChannel(
+                        id = existing.id,
+                        title = updateInput.title ?: existing.title,
+                        speakers = updateInput.speakers ?: existing.speakers,
+                        externalId = existing.externalId,
+                        ratingCategories = existing.ratingCategories,
+                        isOpen = updateInput.isOpen ?: existing.isOpen,
+                        opensAt = newOpensAt,
+                        closesAt = newClosesAt,
+                    )
+                } catch (e: IllegalArgumentException) {
+                    return@patch call.respond(HttpStatusCode.BadRequest, e.message ?: "Invalid input")
+                }
                 val updated = try {
                     feedbackAdapter.updateChannel(merged)
                 } catch (e: ChannelNotFoundError) {

@@ -197,6 +197,184 @@ class FeedbackEndpointsTest {
     }
 
     @Test
+    fun `patch channel updates title and speakers`() = testApplication {
+        application {
+            module(TestDatabase.config(), testAuthConfig)
+        }
+
+        val client = createClient {
+            install(ContentNegotiation) {
+                json()
+            }
+        }
+
+        val channel = client.post("/v1/feedback/channel") {
+            adminAuth()
+            contentType(ContentType.Application.Json)
+            setBody(
+                FeedbackChannelCreationDTO(
+                    title = "Original title",
+                    speakers = listOf("Original Speaker"),
+                    ratingCategories = listOf(FeedbackChannelRatingCategoryDTO(id = null, title = "Rating"))
+                )
+            )
+        }.body<FeedbackChannelDTO>()
+
+        val patched = client.patch("/v1/feedback/channel/${channel.channelId}") {
+            adminAuth()
+            contentType(ContentType.Application.Json)
+            setBody(
+                FeedbackChannelUpdateDTO(
+                    title = "Updated title",
+                    speakers = listOf("New Speaker", "Another Speaker"),
+                )
+            )
+        }
+
+        assertEquals(HttpStatusCode.OK, patched.status)
+        val body = patched.body<FeedbackChannelDTO>()
+        assertEquals("Updated title", body.title)
+        assertEquals(listOf("New Speaker", "Another Speaker"), body.speakers)
+    }
+
+    @Test
+    fun `patch channel with empty body leaves title and speakers unchanged`() = testApplication {
+        application {
+            module(TestDatabase.config(), testAuthConfig)
+        }
+
+        val client = createClient {
+            install(ContentNegotiation) {
+                json()
+            }
+        }
+
+        val channel = client.post("/v1/feedback/channel") {
+            adminAuth()
+            contentType(ContentType.Application.Json)
+            setBody(
+                FeedbackChannelCreationDTO(
+                    title = "Keep me",
+                    speakers = listOf("Keep Speaker"),
+                    ratingCategories = listOf(FeedbackChannelRatingCategoryDTO(id = null, title = "Rating"))
+                )
+            )
+        }.body<FeedbackChannelDTO>()
+
+        val patched = client.patch("/v1/feedback/channel/${channel.channelId}") {
+            adminAuth()
+            contentType(ContentType.Application.Json)
+            setBody(FeedbackChannelUpdateDTO(isOpen = true))
+        }
+
+        assertEquals(HttpStatusCode.OK, patched.status)
+        val body = patched.body<FeedbackChannelDTO>()
+        assertEquals("Keep me", body.title)
+        assertEquals(listOf("Keep Speaker"), body.speakers)
+    }
+
+    @Test
+    fun `patch channel with blank title returns bad request`() = testApplication {
+        application {
+            module(TestDatabase.config(), testAuthConfig)
+        }
+
+        val client = createClient {
+            install(ContentNegotiation) {
+                json()
+            }
+        }
+
+        val channel = client.post("/v1/feedback/channel") {
+            adminAuth()
+            contentType(ContentType.Application.Json)
+            setBody(
+                FeedbackChannelCreationDTO(
+                    title = "Valid title",
+                    speakers = listOf("Speaker"),
+                    ratingCategories = listOf(FeedbackChannelRatingCategoryDTO(id = null, title = "Rating"))
+                )
+            )
+        }.body<FeedbackChannelDTO>()
+
+        val patched = client.patch("/v1/feedback/channel/${channel.channelId}") {
+            adminAuth()
+            contentType(ContentType.Application.Json)
+            setBody(FeedbackChannelUpdateDTO(title = ""))
+        }
+
+        assertEquals(HttpStatusCode.BadRequest, patched.status)
+    }
+
+    @Test
+    fun `patch channel with blank speaker returns bad request`() = testApplication {
+        application {
+            module(TestDatabase.config(), testAuthConfig)
+        }
+
+        val client = createClient {
+            install(ContentNegotiation) {
+                json()
+            }
+        }
+
+        val channel = client.post("/v1/feedback/channel") {
+            adminAuth()
+            contentType(ContentType.Application.Json)
+            setBody(
+                FeedbackChannelCreationDTO(
+                    title = "Valid title",
+                    speakers = listOf("Speaker"),
+                    ratingCategories = listOf(FeedbackChannelRatingCategoryDTO(id = null, title = "Rating"))
+                )
+            )
+        }.body<FeedbackChannelDTO>()
+
+        val patched = client.patch("/v1/feedback/channel/${channel.channelId}") {
+            adminAuth()
+            contentType(ContentType.Application.Json)
+            setBody(FeedbackChannelUpdateDTO(speakers = listOf("")))
+        }
+
+        assertEquals(HttpStatusCode.BadRequest, patched.status)
+    }
+
+    @Test
+    fun `patch channel with empty speakers list is allowed`() = testApplication {
+        application {
+            module(TestDatabase.config(), testAuthConfig)
+        }
+
+        val client = createClient {
+            install(ContentNegotiation) {
+                json()
+            }
+        }
+
+        val channel = client.post("/v1/feedback/channel") {
+            adminAuth()
+            contentType(ContentType.Application.Json)
+            setBody(
+                FeedbackChannelCreationDTO(
+                    title = "Valid title",
+                    speakers = listOf("Speaker"),
+                    ratingCategories = listOf(FeedbackChannelRatingCategoryDTO(id = null, title = "Rating"))
+                )
+            )
+        }.body<FeedbackChannelDTO>()
+
+        val patched = client.patch("/v1/feedback/channel/${channel.channelId}") {
+            adminAuth()
+            contentType(ContentType.Application.Json)
+            setBody(FeedbackChannelUpdateDTO(speakers = emptyList()))
+        }
+
+        assertEquals(HttpStatusCode.OK, patched.status)
+        val body = patched.body<FeedbackChannelDTO>()
+        assertEquals(emptyList<String>(), body.speakers)
+    }
+
+    @Test
     fun `patch channel returns not found for unknown channel`() = testApplication {
         application {
             module(TestDatabase.config(), testAuthConfig)
