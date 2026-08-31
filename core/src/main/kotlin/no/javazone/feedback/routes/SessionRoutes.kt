@@ -17,6 +17,10 @@ import java.time.Clock
 
 fun Route.sessionRoutes(feedbackAdapter: FeedbackAdapter, clock: Clock) {
     route("session") {
+        get("/") {
+            call.respondRedirect("/")
+        }
+
         get {
             call.respondRedirect("/")
         }
