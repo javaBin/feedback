@@ -6,6 +6,7 @@ import io.ktor.server.auth.authenticate
 import io.ktor.server.auth.principal
 import io.ktor.server.html.respondHtml
 import io.ktor.server.response.respond
+import io.ktor.server.response.respondRedirect
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.route
@@ -16,6 +17,10 @@ import java.time.Clock
 
 fun Route.sessionRoutes(feedbackAdapter: FeedbackAdapter, clock: Clock) {
     route("session") {
+        get {
+            call.respondRedirect("/")
+        }
+
         authenticate("admin", optional = true) {
             get("/{channelId}") {
                 val channelId = call.parameters["channelId"]
