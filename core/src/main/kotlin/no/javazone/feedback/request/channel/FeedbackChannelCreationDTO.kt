@@ -11,6 +11,7 @@ data class FeedbackChannelCreationDTO(
     val ratingCategories: List<FeedbackChannelRatingCategoryDTO>,
     val opensAt: String? = null,
     val closesAt: String? = null,
+    val remoteId: String? = null,
 ) {
     fun toDomain(): FeedbackChannelCreationInput {
         return FeedbackChannelCreationInput(
@@ -19,6 +20,7 @@ data class FeedbackChannelCreationDTO(
             ratings = ratingCategories.map { it.toDomain() },
             opensAt = opensAt?.let { Instant.parse(it) },
             closesAt = closesAt?.let { Instant.parse(it) },
+            remoteId = remoteId,
         )
     }
 }

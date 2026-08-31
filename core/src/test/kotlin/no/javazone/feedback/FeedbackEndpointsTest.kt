@@ -115,6 +115,63 @@ class FeedbackEndpointsTest {
     }
 
     @Test
+    fun `create feedback channel with remoteId returns remoteId in response`() = testApplication {
+        application {
+            module(TestDatabase.config(), testAuthConfig)
+        }
+
+        val client = createClient {
+            install(ContentNegotiation) {
+                json()
+            }
+        }
+
+        val remoteId = "550e8400-e29b-41d4-a716-446655440000"
+
+        val channel = client.post("/v1/feedback/channel") {
+            adminAuth()
+            contentType(ContentType.Application.Json)
+            setBody(
+                FeedbackChannelCreationDTO(
+                    title = "Talk with remote id",
+                    speakers = listOf("Speaker"),
+                    ratingCategories = listOf(FeedbackChannelRatingCategoryDTO(id = null, title = "Rating")),
+                    remoteId = remoteId,
+                )
+            )
+        }.body<FeedbackChannelDTO>()
+
+        assertEquals(remoteId, channel.remoteId)
+    }
+
+    @Test
+    fun `create feedback channel without remoteId leaves it null`() = testApplication {
+        application {
+            module(TestDatabase.config(), testAuthConfig)
+        }
+
+        val client = createClient {
+            install(ContentNegotiation) {
+                json()
+            }
+        }
+
+        val channel = client.post("/v1/feedback/channel") {
+            adminAuth()
+            contentType(ContentType.Application.Json)
+            setBody(
+                FeedbackChannelCreationDTO(
+                    title = "Talk without remote id",
+                    speakers = listOf("Speaker"),
+                    ratingCategories = listOf(FeedbackChannelRatingCategoryDTO(id = null, title = "Rating"))
+                )
+            )
+        }.body<FeedbackChannelDTO>()
+
+        assertEquals(null, channel.remoteId)
+    }
+
+    @Test
     fun `submitting feedback to closed channel returns forbidden`() = testApplication {
         application {
             module(TestDatabase.config(), testAuthConfig)

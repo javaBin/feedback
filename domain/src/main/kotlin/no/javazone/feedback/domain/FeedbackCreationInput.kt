@@ -8,6 +8,7 @@ data class FeedbackChannelCreationInput(
     val ratings: List<FeedbackChannelRatingCategory>,
     val opensAt: Instant? = null,
     val closesAt: Instant? = null,
+    val remoteId: String? = null,
 ) {
     init {
         require(ratings.isNotEmpty()) {

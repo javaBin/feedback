@@ -12,6 +12,7 @@ data class FeedbackChannelDTO(
     val isOpen: Boolean,
     val opensAt: String? = null,
     val closesAt: String? = null,
+    val remoteId: String? = null,
 )
 
 fun FeedbackChannel.toDTO(): FeedbackChannelDTO {
@@ -28,5 +29,6 @@ fun FeedbackChannel.toDTO(): FeedbackChannelDTO {
         isOpen = isOpen,
         opensAt = opensAt?.toString(),
         closesAt = closesAt?.toString(),
+        remoteId = remoteId,
     )
 }

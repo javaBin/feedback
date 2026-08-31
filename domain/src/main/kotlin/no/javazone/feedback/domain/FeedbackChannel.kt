@@ -11,6 +11,7 @@ class FeedbackChannel(
     val isOpen: Boolean = false,
     val opensAt: Instant? = null,
     val closesAt: Instant? = null,
+    val remoteId: String? = null,
 ) {
     init {
         require(speakers.all { it.isNotEmpty() }) { "All speakers must not be empty." }

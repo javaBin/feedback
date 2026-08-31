@@ -37,12 +37,14 @@ object FeedbackRepositoryDb : FeedbackRepository {
                     FeedbackChannels.isOpen,
                     FeedbackChannels.opensAt,
                     FeedbackChannels.closesAt,
+                    FeedbackChannels.remoteId,
                 )
             ) {
                 it[title] = input.title
                 it[speakers] = input.speakers
                 it[opensAt] = input.opensAt.toOffset()
                 it[closesAt] = input.closesAt.toOffset()
+                it[remoteId] = input.remoteId
             }.first()
 
             val createdChannelId = insertedRow[FeedbackChannels.id]
@@ -67,6 +69,7 @@ object FeedbackRepositoryDb : FeedbackRepository {
                 isOpen = insertedRow[FeedbackChannels.isOpen],
                 opensAt = insertedRow[FeedbackChannels.opensAt].toInstantOrNull(),
                 closesAt = insertedRow[FeedbackChannels.closesAt].toInstantOrNull(),
+                remoteId = insertedRow[FeedbackChannels.remoteId],
             )
         }
     }
@@ -119,6 +122,7 @@ object FeedbackRepositoryDb : FeedbackRepository {
                         isOpen = firstRow[FeedbackChannels.isOpen],
                         opensAt = firstRow[FeedbackChannels.opensAt].toInstantOrNull(),
                         closesAt = firstRow[FeedbackChannels.closesAt].toInstantOrNull(),
+                        remoteId = firstRow[FeedbackChannels.remoteId],
                     )
                 }
         }
@@ -154,6 +158,7 @@ object FeedbackRepositoryDb : FeedbackRepository {
                     isOpen = firstRow[FeedbackChannels.isOpen],
                     opensAt = firstRow[FeedbackChannels.opensAt].toInstantOrNull(),
                     closesAt = firstRow[FeedbackChannels.closesAt].toInstantOrNull(),
+                    remoteId = firstRow[FeedbackChannels.remoteId],
                 )
             }
         }
