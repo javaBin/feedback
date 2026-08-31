@@ -5,7 +5,7 @@ import org.jetbrains.exposed.sql.javatime.timestamp
 
 object RatingTypes : LongIdTable("rating_type") {
     val channelId = long("channel_id")
-    val ratingName = varchar("rating_name", 50)
+    val ratingName = varchar("rating_name", 150)
     val createdAt = timestamp("created_at")
 
     init {
