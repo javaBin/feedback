@@ -438,6 +438,147 @@ class AdminEndpointsTest {
     }
 
     @Test
+    fun `updating details changes title and speakers`() = testApplication {
+        application {
+            module(TestDatabase.config(), testAuthConfig)
+        }
+
+        val jsonClient = createClient {
+            install(ContentNegotiation) { json() }
+        }
+
+        val channel = jsonClient.post("/v1/feedback/channel") {
+            adminAuth()
+            contentType(ContentType.Application.Json)
+            setBody(
+                FeedbackChannelCreationDTO(
+                    title = "Original title",
+                    speakers = listOf("Original Speaker"),
+                    ratingCategories = listOf(FeedbackChannelRatingCategoryDTO(id = null, title = "Content")),
+                )
+            )
+        }.body<FeedbackChannelDTO>()
+
+        val updateResponse = client.post("/admin/channel/${channel.channelId}/details") {
+            adminAuth()
+            contentType(ContentType.Application.FormUrlEncoded)
+            setBody(
+                listOf(
+                    "title" to "Updated title",
+                    "speakers" to "Speaker One\nSpeaker Two",
+                ).formUrlEncode()
+            )
+        }
+        assertEquals(HttpStatusCode.Found, updateResponse.status)
+
+        val body = client.get("/admin/channel/${channel.channelId}") {
+            adminAuth()
+        }.bodyAsText()
+
+        assertTrue(body.contains("Updated title"), "should show updated title")
+        assertFalse(body.contains("Original title"), "old title should be gone")
+        assertTrue(body.contains("Speaker One, Speaker Two"), "should show updated speakers")
+        assertFalse(body.contains("Original Speaker"), "old speaker should be gone")
+    }
+
+    @Test
+    fun `updating details with blank title returns bad request`() = testApplication {
+        application {
+            module(TestDatabase.config(), testAuthConfig)
+        }
+
+        val jsonClient = createClient {
+            install(ContentNegotiation) { json() }
+        }
+
+        val channel = jsonClient.post("/v1/feedback/channel") {
+            adminAuth()
+            contentType(ContentType.Application.Json)
+            setBody(
+                FeedbackChannelCreationDTO(
+                    title = "Keep me",
+                    speakers = listOf("Speaker"),
+                    ratingCategories = listOf(FeedbackChannelRatingCategoryDTO(id = null, title = "Content")),
+                )
+            )
+        }.body<FeedbackChannelDTO>()
+
+        val response = client.post("/admin/channel/${channel.channelId}/details") {
+            adminAuth()
+            contentType(ContentType.Application.FormUrlEncoded)
+            setBody(
+                listOf(
+                    "title" to "",
+                    "speakers" to "Speaker",
+                ).formUrlEncode()
+            )
+        }
+        assertEquals(HttpStatusCode.BadRequest, response.status)
+    }
+
+    @Test
+    fun `updating details with no speakers returns bad request`() = testApplication {
+        application {
+            module(TestDatabase.config(), testAuthConfig)
+        }
+
+        val jsonClient = createClient {
+            install(ContentNegotiation) { json() }
+        }
+
+        val channel = jsonClient.post("/v1/feedback/channel") {
+            adminAuth()
+            contentType(ContentType.Application.Json)
+            setBody(
+                FeedbackChannelCreationDTO(
+                    title = "Keep me",
+                    speakers = listOf("Speaker"),
+                    ratingCategories = listOf(FeedbackChannelRatingCategoryDTO(id = null, title = "Content")),
+                )
+            )
+        }.body<FeedbackChannelDTO>()
+
+        val response = client.post("/admin/channel/${channel.channelId}/details") {
+            adminAuth()
+            contentType(ContentType.Application.FormUrlEncoded)
+            setBody(
+                listOf(
+                    "title" to "Still a title",
+                    "speakers" to "",
+                ).formUrlEncode()
+            )
+        }
+        assertEquals(HttpStatusCode.BadRequest, response.status)
+    }
+
+    @Test
+    fun `details update without auth returns unauthorized`() = testApplication {
+        application {
+            module(TestDatabase.config(), testAuthConfig)
+        }
+
+        val response = client.post("/admin/channel/ABCD/details") {
+            contentType(ContentType.Application.FormUrlEncoded)
+            setBody("title=New&speakers=Speaker")
+        }
+        assertEquals(HttpStatusCode.Unauthorized, response.status)
+    }
+
+    @Test
+    fun `details update for unknown channel returns not found`() = testApplication {
+        application {
+            module(TestDatabase.config(), testAuthConfig)
+        }
+
+        val response = client.post("/admin/channel/ZZZZ/details") {
+            adminAuth()
+            contentType(ContentType.Application.FormUrlEncoded)
+            setBody("title=New&speakers=Speaker")
+        }
+        assertEquals(HttpStatusCode.NotFound, response.status)
+    }
+
+    @Test
     fun `admin page for channel without feedback shows empty state`() = testApplication {
         application {
             module(TestDatabase.config(), testAuthConfig)

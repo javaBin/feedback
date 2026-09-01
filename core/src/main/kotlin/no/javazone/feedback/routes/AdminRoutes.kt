@@ -92,6 +92,45 @@ fun Route.adminRoutes(feedbackAdapter: FeedbackAdapter, clock: Clock) {
                 call.respondRedirect("/admin/channel/$channelId")
             }
 
+            post("details") {
+                val channelId = call.parameters["channelId"]
+                    ?: return@post call.respond(HttpStatusCode.NotFound)
+                val existing = feedbackAdapter.findChannel(channelId)
+                    ?: return@post call.respond(HttpStatusCode.NotFound, "Channel not found")
+
+                val params: Parameters = call.receiveParameters()
+                val title = params["title"]?.trim().orEmpty()
+                val speakers = params["speakers"]
+                    ?.lines()
+                    ?.map { it.trim() }
+                    ?.filter { it.isNotEmpty() }
+                    ?: emptyList()
+
+                if (speakers.isEmpty()) {
+                    return@post call.respond(HttpStatusCode.BadRequest, "At least one speaker is required.")
+                }
+
+                try {
+                    val merged = FeedbackChannel(
+                        id = existing.id,
+                        title = title,
+                        speakers = speakers,
+                        externalId = existing.externalId,
+                        ratingCategories = existing.ratingCategories,
+                        isOpen = existing.isOpen,
+                        opensAt = existing.opensAt,
+                        closesAt = existing.closesAt,
+                    )
+                    feedbackAdapter.updateChannel(merged)
+                } catch (e: ChannelNotFoundError) {
+                    return@post call.respond(HttpStatusCode.NotFound, e.message)
+                } catch (e: IllegalArgumentException) {
+                    return@post call.respond(HttpStatusCode.BadRequest, e.message ?: "Invalid details")
+                }
+
+                call.respondRedirect("/admin/channel/$channelId")
+            }
+
             post("feedback/{feedbackId}/update") {
                 val channelId = call.parameters["channelId"]
                     ?: return@post call.respond(HttpStatusCode.NotFound)

@@ -370,6 +370,87 @@ button.delete-btn:hover {
     background: #1d4ed8;
 }
 
+.details-form-wrapper {
+    margin-bottom: 0;
+}
+
+.details-form-wrapper[open] .edit-toggle {
+    margin-bottom: 1rem;
+}
+
+.edit-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    cursor: pointer;
+    padding: 0.4rem 0.9rem;
+    background: #2563eb;
+    color: #fff;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    transition: background 0.15s;
+    list-style: none;
+    user-select: none;
+}
+
+.edit-toggle::-webkit-details-marker {
+    display: none;
+}
+
+.edit-toggle:hover {
+    background: #1d4ed8;
+}
+
+.details-form-card {
+    margin-top: 0.75rem;
+}
+
+.details-form-card .section-heading {
+    margin-top: 0;
+}
+
+.details-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.details-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.details-field > label {
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.details-field input[type="text"],
+.details-field textarea {
+    width: 100%;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 0.6rem 0.75rem;
+    font-family: inherit;
+    font-size: 0.95rem;
+    background: #fff;
+    color: #1a1a1a;
+    line-height: 1.5;
+}
+
+.details-field textarea {
+    resize: vertical;
+}
+
+.details-field input[type="text"]:focus,
+.details-field textarea:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+}
+
 /* Admin schedule form */
 
 .admin-page > * + * {

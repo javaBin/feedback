@@ -107,6 +107,8 @@ fun HTML.adminChannelPage(channel: FeedbackChannel, feedbacks: List<Feedback>, n
                 }
             }
 
+            detailsForm(channel)
+
             scheduleForm(channel)
 
             section("feedback-section") {
@@ -124,6 +126,52 @@ fun HTML.adminChannelPage(channel: FeedbackChannel, feedbacks: List<Feedback>, n
                             feedbackRow(channel, feedback)
                         }
                     }
+                }
+            }
+        }
+    }
+}
+
+private fun FlowContent.detailsForm(channel: FeedbackChannel) {
+    details("details-form-wrapper") {
+        summary("edit-toggle") { +"\u270e Edit details" }
+        div("card details-form-card") {
+            h2("section-heading") { +"Details" }
+            p("section-hint") { +"One speaker per line." }
+            form(
+                method = FormMethod.post,
+                action = "/admin/channel/${channel.externalId}/details",
+            ) {
+                classes = setOf("details-form")
+
+                div("details-field") {
+                    label {
+                        htmlFor = "channel-title"
+                        +"Title"
+                    }
+                    input(InputType.text) {
+                        id = "channel-title"
+                        name = "title"
+                        value = channel.title
+                        required = true
+                    }
+                }
+
+                div("details-field") {
+                    label {
+                        htmlFor = "channel-speakers"
+                        +"Speakers"
+                    }
+                    textArea {
+                        id = "channel-speakers"
+                        name = "speakers"
+                        rows = "3"
+                        +channel.speakers.joinToString("\n")
+                    }
+                }
+
+                div("feedback-actions") {
+                    button(type = ButtonType.submit, classes = "save-btn") { +"Save details" }
                 }
             }
         }
