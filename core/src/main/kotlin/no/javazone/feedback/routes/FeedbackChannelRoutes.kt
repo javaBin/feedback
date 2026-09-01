@@ -1,9 +1,11 @@
 package no.javazone.feedback.routes
 
 import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.auth.authenticate
 import io.ktor.server.request.receive
+import io.ktor.server.response.header
 import io.ktor.server.response.respond
 import io.ktor.server.response.respondOutputStream
 import io.ktor.server.routing.Route
@@ -92,6 +94,7 @@ fun Route.feedbackChannelRoutes(
                 "Channel with id $channelId does not exist",
             )
 
+            call.response.header(HttpHeaders.CacheControl, "public, max-age=86400, immutable")
             call.respondOutputStream(
                 contentType = ContentType.Image.PNG,
                 status = HttpStatusCode.OK,

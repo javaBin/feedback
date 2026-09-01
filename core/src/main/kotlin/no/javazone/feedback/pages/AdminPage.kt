@@ -49,6 +49,7 @@ fun HTML.adminDashboardPage(channels: List<FeedbackChannel>) {
                                 src = "/v1/feedback/channel/${channel.externalId}/qrcode"
                                 width = "200"
                                 height = "200"
+                                attributes["loading"] = "lazy"
                             }
                             div("channel-info") {
                                 h2 { +channel.title }
