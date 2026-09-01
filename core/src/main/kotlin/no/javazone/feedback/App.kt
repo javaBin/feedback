@@ -6,6 +6,7 @@ import io.ktor.server.auth.*
 import io.ktor.server.netty.*
 import io.ktor.server.plugins.calllogging.*
 import io.ktor.server.plugins.contentnegotiation.*
+import io.ktor.server.plugins.cors.routing.CORS
 import no.javazone.feedback.database.FeedbackDatabaseConfig
 import no.javazone.feedback.database.setupDatabase
 
@@ -35,6 +36,9 @@ fun Application.module(
 
     install(ContentNegotiation) {
         json()
+    }
+    install(CORS) {
+        allowHost("javazone.no", subDomains = listOf("screens"))
     }
     install(CallLogging)
     install(Authentication) {
