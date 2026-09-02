@@ -22,7 +22,5 @@ class FeedbackChannel(
     }
 
     fun isEffectivelyOpen(now: Instant): Boolean =
-        isOpen &&
-            (opensAt == null || !now.isBefore(opensAt)) &&
-            (closesAt == null || now.isBefore(closesAt))
+        true
 }
