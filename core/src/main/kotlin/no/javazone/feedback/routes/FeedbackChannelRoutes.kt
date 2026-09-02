@@ -3,12 +3,14 @@ package no.javazone.feedback.routes
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
+import io.ktor.server.application.log
 import io.ktor.server.auth.authenticate
 import io.ktor.server.request.receive
 import io.ktor.server.response.header
 import io.ktor.server.response.respond
 import io.ktor.server.response.respondOutputStream
 import io.ktor.server.routing.Route
+import io.ktor.server.routing.application
 import io.ktor.server.routing.get
 import io.ktor.server.routing.patch
 import io.ktor.server.routing.post
@@ -43,9 +45,6 @@ fun Route.feedbackChannelRoutes(
 
             val feedbackInput = call.receive<FeedbackCreationDTO>()
 
-            application.log.info("Feedback received on ${clock.instant()}: $feedbackInput \n\n ${call.request.headers}")
-
-
             val createdFeedback = try {
                 feedbackAdapter.submitFeedback(
                     channelId = channelId,
@@ -53,8 +52,10 @@ fun Route.feedbackChannelRoutes(
                     now = clock.instant(),
                 )
             } catch (e: ChannelNotFoundError) {
+                application.log.info("Channel not found: ${e.message}")
                 return@post call.respond(HttpStatusCode.NotFound, e.message)
             } catch (e: ChannelClosedError) {
+                application.log.info("Channel closed: ${e.message}")
                 return@post call.respond(HttpStatusCode.Forbidden, e.message)
             }
 
@@ -79,7 +80,7 @@ fun Route.feedbackChannelRoutes(
                     },
                 )
             }
-
+            application.log.info("Created feedback with id: ${feedbackDto.id}")
             call.respond(feedbackDto)
         }
 
