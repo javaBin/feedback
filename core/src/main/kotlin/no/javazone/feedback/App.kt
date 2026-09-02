@@ -1,5 +1,6 @@
 package no.javazone.feedback
 
+import io.ktor.http.HttpHeaders
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
@@ -38,9 +39,9 @@ fun Application.module(
         json()
     }
     install(CORS) {
-        allowHost("javazone.no", subDomains = listOf("screens"), schemes = listOf("https"))
-        allowHost("feedback.java.no", schemes = listOf("https"))
-        allowHost("f.java.no", schemes = listOf("https"))
+        anyHost()
+        allowHeader(HttpHeaders.ContentType)
+        allowNonSimpleContentTypes = true
     }
     install(CallLogging)
     install(Authentication) {
