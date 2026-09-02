@@ -45,9 +45,6 @@ fun Route.feedbackChannelRoutes(
 
             val feedbackInput = call.receive<FeedbackCreationDTO>()
 
-            application.log.info("Feedback received on ${clock.instant()}: $feedbackInput \n\n ${call.request.headers}")
-
-
             val createdFeedback = try {
                 feedbackAdapter.submitFeedback(
                     channelId = channelId,
@@ -55,10 +52,10 @@ fun Route.feedbackChannelRoutes(
                     now = clock.instant(),
                 )
             } catch (e: ChannelNotFoundError) {
-                application.log.error("Failed with id $channelId not found")
+                application.log.info("Channel not found: ${e.message}")
                 return@post call.respond(HttpStatusCode.NotFound, e.message)
             } catch (e: ChannelClosedError) {
-                application.log.error("Failed with id $channelId closed")
+                application.log.info("Channel closed: ${e.message}")
                 return@post call.respond(HttpStatusCode.Forbidden, e.message)
             }
 
@@ -83,7 +80,7 @@ fun Route.feedbackChannelRoutes(
                     },
                 )
             }
-
+            application.log.info("Created feedback with id: ${feedbackDto.id}")
             call.respond(feedbackDto)
         }
 
