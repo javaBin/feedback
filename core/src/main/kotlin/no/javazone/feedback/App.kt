@@ -38,9 +38,9 @@ fun Application.module(
         json()
     }
     install(CORS) {
-        allowHost("javazone.no", subDomains = listOf("screens"))
-        allowHost("feedback.java.no")
-        allowHost("f.java.no")
+        allowHost("javazone.no", subDomains = listOf("screens"), schemes = listOf("https"))
+        allowHost("feedback.java.no", schemes = listOf("https"))
+        allowHost("f.java.no", schemes = listOf("https"))
     }
     install(CallLogging)
     install(Authentication) {
