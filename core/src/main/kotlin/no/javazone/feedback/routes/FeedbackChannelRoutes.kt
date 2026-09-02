@@ -45,6 +45,9 @@ fun Route.feedbackChannelRoutes(
 
             val feedbackInput = call.receive<FeedbackCreationDTO>()
 
+            application.log.info("Feedback received on ${clock.instant()}: $feedbackInput \n\n ${call.request.headers}")
+
+
             val createdFeedback = try {
                 feedbackAdapter.submitFeedback(
                     channelId = channelId,
