@@ -9,12 +9,10 @@ import no.javazone.feedback.domain.FeedbackRating
 import no.javazone.feedback.domain.errors.ChannelClosedError
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.time.Instant
 
-@Disabled
 class FeedbackAdapterTest {
 
     private val defaultInput = FeedbackChannelCreationInput(
